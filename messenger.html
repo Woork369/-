@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лето Мессенджер</title>
+    <link rel="stylesheet" href="messenger-style.css">
+    
+    <!-- ПОДКЛЮЧЕНИЕ ОФИЦИАЛЬНОГО БРАУЗЕРНОГО КЛИЕНТА SUPABASE -->
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body>
+
+    <div class="app-layout">
+        
+        <!-- ЛЕВАЯ ЧАСТЬ: Навигация и списки -->
+        <aside class="sidebar-section">
+            
+            <!-- Профиль текущего пользователя -->
+            <div class="user-bar">
+                <div class="user-info">
+                    <div class="user-avatar" id="my-avatar"></div>
+                    <span class="user-display-name" id="active-username">Загрузка...</span>
+                </div>
+                <button class="icon-btn" id="open-settings-trigger" title="Настройки">⚙️</button>
+            </div>
+
+            <!-- Управление фильтрами -->
+            <nav class="filter-navigation">
+                <button class="tab-btn active" data-type="contact">Контакты</button>
+                <button class="tab-btn" data-type="group">Группы</button>
+                <button class="tab-btn" data-type="channel">Каналы</button>
+            </nav>
+
+            <!-- Список чатов -->
+            <div class="dialogs-list" id="chats-list-target"></div>
+
+        </aside>
+
+        <!-- ПРАВАЯ ЧАСТЬ: Рабочая область выбранного чата -->
+        <main class="chat-section">
+            
+            <!-- Шапка активного чата -->
+            <div class="chat-workspace-header" id="active-chat-header" style="display: none;">
+                <div class="active-chat-meta">
+                    <div class="user-avatar small" id="target-chat-avatar"></div>
+                    <span class="chat-title-text" id="target-chat-name">Собеседник</span>
+                </div>
+            </div>
+
+            <!-- Лента сообщений -->
+            <div class="messages-viewport" id="messages-screen">
+                <div class="system-notice" id="fallback-notice">
+                    Выберите диалог для начала общения
+                </div>
+            </div>
+
+            <!-- Инструменты ввода -->
+            <div class="message-input-zone" id="input-zone" style="display: none;">
+                <div class="input-container-row">
+                    <button class="tool-btn" id="media-attach-btn" title="Прикрепить файл">📎</button>
+                    <input type="text" id="main-message-field" placeholder="Напишите сообщение..." autocomplete="off">
+                    <button class="tool-btn" id="voice-record-btn" title="Записать голосовое сообщение">🎤</button>
+                    <button class="send-action-btn" id="send-btn">Отправить</button>
+                </div>
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="messenger-script.js"></script>
+</body>
+</html>

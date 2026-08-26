@@ -1,0 +1,237 @@
+:root {
+    --bg-main: #f4f6f9;
+    --bg-white: #ffffff;
+    --border-color: #e1e4e8;
+    --text-primary: #1f2328;
+    --text-muted: #656d76;
+    --primary-color: #007aff;
+    --bubble-me: #dcf8c6;
+    --bubble-other: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+.app-layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Левая колонка */
+.sidebar-section {
+    width: 320px;
+    height: 100%;
+    background: var(--bg-white);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.user-bar {
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: #e1e4e8;
+    border-radius: 50%;
+}
+
+.user-avatar.small {
+    width: 32px;
+    height: 32px;
+}
+
+.user-display-name {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.icon-btn, .tool-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.icon-btn:hover, .tool-btn:hover {
+    background: var(--bg-main);
+}
+
+/* Навигация-фильтр */
+.filter-navigation {
+    display: flex;
+    padding: 8px;
+    gap: 4px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: none;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.tab-btn.active {
+    background: #e8f2ff;
+    color: var(--primary-color);
+}
+
+/* Список чатов */
+.dialogs-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.chat-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.chat-card:hover {
+    background: var(--bg-main);
+}
+
+.status-message {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Правая колонка чата */
+.chat-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #eae6df; /* Классический нейтральный фон чата */
+}
+
+.chat-workspace-header {
+    height: 60px;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.active-chat-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-title-text {
+    font-weight: 600;
+}
+
+/* Лента */
+.messages-viewport {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.system-notice {
+    margin: auto;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Облака сообщений */
+.msg-bubble {
+    max-width: 60%;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.4;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.msg-bubble.incoming {
+    align-self: flex-start;
+    background: var(--bubble-other);
+}
+
+.msg-bubble.outgoing {
+    align-self: flex-end;
+    background: var(--bubble-me);
+}
+
+/* Нижняя панель */
+.message-input-zone {
+    background: #f0f0f0;
+    padding: 10px 20px;
+}
+
+.input-container-row {
+    display: flex;
+    align-items: center;
+    background: var(--bg-white);
+    padding: 6px 12px;
+    border-radius: 24px;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+#main-message-field {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    padding: 4px 0;
+}
+
+.send-action-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
