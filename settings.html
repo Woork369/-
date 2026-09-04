@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лето Настройки — Premium UI</title>
+    <link rel="stylesheet" href="messenger-style.css">
+    <link rel="stylesheet" href="settings-style.css">
+</head>
+<body>
+
+<div class="premium-wrapper">
+    <!-- Шапка кабинета -->
+    <div class="premium-header">
+        <button class="action-back-btn" onclick="window.location.href='messenger.html'">⬅</button>
+        <h2>Настройки системы</h2>
+    </div>
+
+    <!-- Блок профиля и аватара -->
+    <div class="avatar-container-block">
+        <div class="premium-avatar-holder" id="avatar-preview" onclick="document.getElementById('avatar-file').click()">
+            <div class="blur-layer">Изменить</div>
+        </div>
+        <input type="file" id="avatar-file" accept="image/*" style="display:none">
+        <div class="username-title" id="settings-username">Загрузка...</div>
+    </div>
+
+    <!-- КАРТОЧКА 1: Интерфейс и Визуал -->
+    <div class="ios-group-card">
+        <div class="ios-row">
+            <div class="ios-row-label">
+                <span>Тема оформления</span>
+                <p>Цветовая схема всего мессенджера</p>
+            </div>
+            <select class="modern-select" id="theme-select">
+                <option value="default">Дневная классика</option>
+                <option value="dark">Темная ночь</option>
+                <option value="ocean">Полуночный океан</option>
+                <option value="mint">Мягкая мята</option>
+            </select>
+        </div>
+        <div class="ios-row">
+            <div class="ios-row-label">
+                <span>Размер шрифта чата</span>
+                <p>Масштабирование текста сообщений</p>
+            </div>
+            <select class="modern-select" id="font-size-select">
+                <option value="13px">Мелкий</option>
+                <option value="15px">Стандартный</option>
+                <option value="17px">Средний</option>
+                <option value="19px">Увеличенный</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- КАРТОЧКА 2: Приватность и Уведомления -->
+    <div class="ios-group-card">
+        <div class="ios-row">
+            <div class="ios-row-label">
+                <span>Звуковые пуши</span>
+                <p>Оповещения о входящих сообщениях</p>
+            </div>
+            <label class="ios-toggle">
+                <input type="checkbox" id="sound-toggle" checked>
+                <span class="ios-slider"></span>
+            </label>
+        </div>
+        <div class="ios-row">
+            <div class="ios-row-label">
+                <span>Транслировать «В сети»</span>
+                <p>Показывать точное время активности</p>
+            </div>
+            <label class="ios-toggle">
+                <input type="checkbox" id="online-status-toggle" checked>
+                <span class="ios-slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- КАРТОЧКА 3: Безопасность и Сессия -->
+    <div class="ios-group-card">
+        <div class="ios-row">
+            <div class="ios-row-label">
+                <span>Режим изоляции памяти</span>
+                <p>Удалять данные сессии при выходе?</p>
+            </div>
+            <select class="modern-select" id="storage-type-select">
+                <option value="localstorage">LocalStorage (Постоянно)</option>
+                <option value="sessionstorage">SessionStorage (Временно)</option>
+            </select>
+        </div>
+        <div class="ios-row">
+            <div class="ios-row-label">
+                <span>Резервная копия</span>
+                <p>Экспорт и импорт локальных данных .json</p>
+            </div>
+            <div class="ios-row-buttons">
+                <button class="btn-backup btn-export" onclick="downloadUserDataFile()">Экспорт</button>
+                <button class="btn-backup btn-import" onclick="document.getElementById('import-backup-file').click()">Импорт</button>
+            </div>
+            <input type="file" id="import-backup-file" accept=".json" style="display:none">
+        </div>
+    </div>
+
+    <!-- КАРТОЧКА 4: Верификация аккаунта -->
+    <div class="ios-group-card">
+        <div class="ios-row">
+            <div class="email-verification-block">
+                <div class="ios-row-label">
+                    <span id="email-status" class="field-value unverified">Электронная почта</span>
+                    <div class="badge-container">
+                        <span id="email-badge" class="badge badge-unverified">Статус: не привязана</span>
+                    </div>
+                </div>
+                <button id="email-action-btn" class="btn btn-primary" onclick="startEmailVerification()">Привязать</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Премиальное модальное окно PIN -->
+<div class="premium-modal-overlay" id="code-modal">
+    <div class="premium-modal-card">
+        <h3 id="modal-title">Проверка безопасности</h3>
+        <p id="modal-description"></p>
+        
+        <div class="premium-code-row">
+            <input type="text" class="code-digit" data-index="0" maxlength="1">
+            <input type="text" class="code-digit" data-index="1" maxlength="1">
+            <input type="text" class="code-digit" data-index="2" maxlength="1">
+            <input type="text" class="code-digit" data-index="3" maxlength="1">
+        </div>
+
+        <div id="modal-status" class="status-msg-box"></div>
+        <div id="resend-link" onclick="resendCode()">Отправить код повторно</div>
+    </div>
+</div>
+
+<script src="settings.js"></script>
+</body>
+</html>

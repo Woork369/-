@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лето — Авторизация</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="auth-container">
+        <!-- Кнопка переключения режима в правом верхнем углу -->
+        <button id="toggle-auth-mode" class="toggle-corner-btn">Зарегистрироваться</button>
+
+        <div class="auth-box">
+            <div class="auth-logo">☀️</div>
+            <h2 id="auth-title">Войти в мессенджер</h2>
+            <p id="auth-subtitle" class="auth-subtitle">Введите ваши данные для входа в сеть Лето</p>
+            
+            <form id="auth-form">
+                <!-- Поле: Имя -->
+                <div class="input-group">
+                    <label for="username">Имя пользователя или никнейм</label>
+                    <input type="text" id="username" placeholder="Например: ivan_summer" required autocomplete="off">
+                </div>
+                
+                <!-- Поле: Пароль -->
+                <div class="input-group">
+                    <label for="user-password">Пароль учетной записи</label>
+                    <input type="password" id="user-password" placeholder="Введите ваш пароль" required>
+                </div>
+                
+                <!-- Поле: Ключ админа -->
+                <div class="input-group admin-group">
+                    <label for="admin-key">Секретный ключ администратора</label>
+                    <input type="password" id="admin-key" placeholder="Введите мастер-ключ доступа" required>
+                </div>
+
+                <!-- Место для вывода сообщений системы -->
+                <div id="auth-message" class="message-box"></div>
+                
+                <!-- Основная кнопка действия -->
+                <button type="submit" id="submit-btn" class="auth-btn">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
