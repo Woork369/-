@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Лето Мессенджер</title>
+    
+    <!-- 🖼️ ПОДКЛЮЧЕНИЕ ТВОЕЙ КАРТИНКИ ДЛЯ ЭКРАНА ЧАТОВ -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    
+    <link rel="stylesheet" href="messenger-style.css"> <!-- Твои стили мессенджера из source: 2 -->
+</head>
+<body>
+
+    <div class="app-layout" id="app-container">
+        
+        <!-- СЛУЖЕБНАЯ ЗАГЛУШКА ЗАГРУЗКИ -->
+        <div id="fallback-notice" class="status-message" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:999;">Загрузка...</div>
+
+        <!-- ЛЕВАЯ ПАНЕЛЬ: Список чатов и контактов -->
+        <div class="sidebar-section">
+            <div class="user-bar">
+                <div class="user-info">
+                    <div class="user-avatar" style="background: #ccc; border-radius: 50%;"></div>
+                    <span class="user-display-name" id="active-username">Загрузка...</span>
+                </div>
+            </div>
+
+            <div class="filter-navigation">
+                <button class="tab-btn active" data-type="contact">Личные</button>
+                <button class="tab-btn" data-type="group">Группы</button>
+                <button class="tab-btn" data-type="channel">Каналы</button>
+            </div>
+
+            <div style="padding: 10px 16px;">
+                <button id="main-dynamic-action-btn">➕ Добавить новый контакт</button>
+            </div>
+
+            <div class="dialogs-list" id="chats-list-target">
+                <!-- Сюда скрипт рендерит карточки чатов -->
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ ПАНЕЛЬ: Окно переписки -->
+        <div class="chat-section">
+            
+            <!-- Шапка активного чата -->
+            <div class="chat-workspace-header" id="active-chat-header" style="display: none;">
+                <div class="active-chat-meta">
+                    <button class="back-to-list-btn" id="mobile-back-btn">⬅</button>
+                    <div class="user-avatar small"></div>
+                    <div class="chat-title-container">
+                        <span class="chat-title-text" id="target-chat-name">Выберите чат</span>
+                        <span class="user-status-text" id="active-user-status">была недавно</span>
+                    </div>
+                </div>
+                <button class="chat-settings-btn" id="room-settings-toggle-btn" style="display: none;">⚙️</button>
+            </div>
+
+            <!-- Лента сообщений -->
+            <div class="messages-viewport" id="messages-screen">
+                <div class="status-message">Выберите чат для начала общения</div>
+            </div>
+
+            <!-- Зона ввода текста -->
+            <div class="message-input-zone" id="input-zone" style="display: none;">
+                <div class="input-container-row">
+                    <button class="icon-btn" title="Прикрепить файл">📎</button>
+                    <input type="text" id="main-message-field" placeholder="Напишите сообщение...">
+                    <button class="icon-btn" title="Голосовое сообщение">🎤</button>
+                    <button class="send-action-btn" id="send-btn">Отправить</button>
+                </div>
+            </div>
+
+            <!-- Скрытые настройки комнаты (управление группами/каналами) -->
+            <div class="leto-room-settings-panel" id="leto-room-settings-panel">
+                <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                    <button class="icon-btn" id="close-room-settings-btn">⬅</button>
+                    <h2>Настройки комнаты</h2>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:16px; max-width:400px;">
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <label style="font-weight:600; font-size:14px;">Название комнаты</label>
+                        <input type="text" id="set-room-name" style="padding:10px; border:1px solid var(--border-color); border-radius:8px; outline:none;">
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:6px;">
+                        <label style="font-weight:600; font-size:14px;">Описание</label>
+                        <textarea id="modal-room-desc" style="padding:10px; border:1px solid var(--border-color); border-radius:8px; outline:none; resize:none; height:8px; min-height:60px;"></textarea>
+                    </div>
+                    
+                    <button class="btn btn-secondary" style="padding:10px; border-radius:8px;">Обновить аватарку</button>
+                    <button class="btn btn-primary" style="padding:12px; border-radius:8px; background:var(--primary-color); color:#fff; border:none; font-weight:700; cursor:pointer;">Сохранить изменения</button>
+                    
+                    <div id="group-add-users-section" style="display:none; flex-direction:column; gap:6px; margin-top:10px;">
+                        <h3>Добавить участников</h3>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="add-member-username" placeholder="Юзернейм..." style="flex:1; padding:10px; border:1px solid var(--border-color); border-radius:8px; outline:none;">
+                            <button id="submit-add-member-btn" style="padding:0 16px; background:var(--primary-color); color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Добавить</button>
+                        </div>
+                    </div>
+
+                    <button id="delete-room-completely-btn" style="margin-top:20px; padding:12px; background:none; border:1px solid #dc3545; color:#dc3545; border-radius:8px; font-weight:600; cursor:pointer;">🗑 Полностью удалить комнату</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Модалка создания комнат -->
+    <div id="create-room-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:999; align-items:center; justify-content:center;">
+        <div style="background:#fff; padding:24px; border-radius:16px; width:320px; display:flex; flex-direction:column; gap:14px;">
+            <h3 id="modal-title">Создание</h3>
+            <input type="text" id="modal-room-name" placeholder="Название..." style="padding:10px; border:1px solid #ccc; border-radius:8px; outline:none;">
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button id="modal-cancel-btn" style="padding:8px 12px; background:none; border:none; cursor:pointer; font-weight:600;">Отмена</button>
+                <button id="modal-submit-btn" style="padding:8px 16px; background:var(--primary-color); color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кастомное контекстное меню сообщений -->
+    <div class="leto-context-menu" id="leto-custom-context-menu">
+        <div class="leto-context-item" id="ctx-edit-msg">✏ Редактировать</div>
+        <div class="leto-context-item danger" id="ctx-delete-msg">🗑 Удалить</div>
+    </div>
+
+    <script src="messenger-script.js"></script> <!-- Твой JS-монолит из source: 1 -->
+</body>
+</html>
