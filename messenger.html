@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лето Мессенджер</title>
+    <!-- Подключение ваших файлов стилей style.css -->
+    <link rel="stylesheet" href="messenger-style.css">
+</head>
+<body>
+
+    <div class="app-layout" id="app-container">
+        <!-- Левый сайдбар с чатами -->
+        <aside class="sidebar-section">
+            <div class="user-bar">
+                <div class="user-info">
+                    <div class="user-avatar"></div>
+                    <span id="active-username" class="user-display-name">Загрузка...</span>
+                </div>
+                <!-- Кнопка настроек профиля сгенерируется JS-кодом автоматически -->
+            </div>
+
+            <nav class="filter-navigation">
+                <button class="tab-btn active" data-type="contact">Личные</button>
+                <button class="tab-btn" data-type="group">Группы</button>
+                <button class="tab-btn" data-type="channel">Каналы</button>
+            </nav>
+
+            <div class="dialogs-list" id="chats-list-target">
+                <div class="status-message">Загрузка чатов...</div>
+            </div>
+
+            <!-- Векторная плавающая кнопка создания -->
+            <div class="sidebar-action-container-tg">
+                <button id="main-dynamic-action-btn" class="telegram-floating-btn" title="Создать">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Правая рабочая область чата -->
+        <main class="chat-section">
+            <!-- Шапка чата -->
+            <div class="chat-workspace-header" id="active-chat-header" style="display: none;">
+                <div class="active-chat-meta">
+                    <button class="back-to-list-btn" id="mobile-back-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                    </button>
+                    <div class="chat-header-avatar"></div>
+                    <div class="chat-title-container">
+                        <span class="chat-title-text" id="target-chat-name">Чат</span>
+                        <span class="user-status-text" id="active-user-status"></span>
+                    </div>
+                </div>
+                <button class="chat-settings-btn" id="room-settings-toggle-btn" style="display: none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
+            </div>
+
+            <!-- Заглушка, когда чат не выбран -->
+            <div id="fallback-notice" class="status-message" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: block;">
+                Выберите чат для начала общения
+            </div>
+
+            <!-- Лента сообщений -->
+            <div class="messages-viewport" id="messages-screen" style="display: none;"></div>
+
+            <!-- Зона ввода сообщения -->
+            <div class="message-input-zone" id="input-zone" style="display: none;">
+                <div class="input-container-row">
+                    <!-- Скрепка -->
+                    <button class="icon-btn" id="chat-clip-file-btn" type="button" title="Прикрепить файл">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    </button>
+                    
+                    <!-- Поле ввода -->
+                    <input type="text" id="main-message-field" placeholder="Напишите сообщение...">
+                    
+                    <!-- Микрофон -->
+                    <button class="icon-btn" id="mic-record-btn" type="button" title="Записать голос"></button>
+                    
+                    <!-- Самолетик отправки -->
+                    <button class="telegram-send-btn" id="send-btn" type="button" title="Отправить">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Настройки комнаты поверх экрана чата -->
+            <div class="leto-room-settings-panel" id="leto-room-settings-panel">
+                <h3>Настройки комнаты</h3>
+                <div style="margin: 15px 0;">
+                    <label>Название комнаты:</label>
+                    <input type="text" id="set-room-name" disabled style="width: 100%; padding: 8px; margin-top: 5px; border-radius: 6px; border: 1px solid var(--border-color);">
+                </div>
+                <div id="group-add-users-section" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                    <label>Добавить участников:</label>
+                    <input type="text" id="add-member-username" placeholder="Юзернейм">
+                    <button id="submit-add-member-btn" style="padding: 8px; cursor: pointer;">Добавить</button>
+                </div>
+                <button id="delete-room-completely-btn" class="danger" style="padding: 10px; color: red; border: 1px solid red; background: none; cursor: pointer; border-radius: 6px; width: 100%; margin-bottom: 10px;">Полностью удалить комнату</button>
+                <button id="close-room-settings-btn" style="padding: 10px; width: 100%; cursor: pointer;">Назад в чат</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно создания комнат -->
+    <div id="create-room-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 12px;">
+            <h3 id="create-room-modal-title">Создание комнаты</h3>
+            <input type="text" id="modal-room-name" placeholder="Название комнаты" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+            <textarea id="modal-room-desc" placeholder="Описание (необязательно)" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; resize: none; height: 80px;"></textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                <button id="modal-cancel-btn" style="padding: 8px 16px; cursor: pointer; border: none; background: #eee; border-radius: 8px;">Отмена</button>
+                <button id="modal-submit-btn" style="padding: 8px 16px; cursor: pointer; border: none; background: var(--primary-color, #007aff); color: white; border-radius: 8px;">Создать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контекстное меню -->
+    <div class="leto-context-menu" id="leto-custom-context-menu">
+        <div class="leto-context-item" id="ctx-edit-msg">Редактировать</div>
+        <div class="leto-context-item danger" id="ctx-delete-msg">Удалить</div>
+    </div>
+
+    <!-- Подключение вашего скрипта messenger.js -->
+    <script src="messenger-script.js"></script>
+</body>
+</html>
