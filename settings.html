@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Настройки — Лето</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+
+<div class="settings-container">
+
+    <header class="settings-header">
+        <button id="back-btn" class="header-back-btn" title="Назад">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </button>
+        <h1 class="header-title" data-i18n="settings_title">Настройки</h1>
+        <div class="header-spacer"></div>
+    </header>
+
+    <main class="settings-content">
+
+        <!-- 1. ПРОФИЛЬ -->
+        <section class="settings-section" data-section="profile">
+            <button class="section-header" type="button">
+                <span class="section-icon">👤</span>
+                <span class="section-title" data-i18n="section_profile">Профиль</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="avatar-row">
+                    <div id="profile-avatar-preview" class="avatar-preview">☀️</div>
+                    <div class="avatar-controls">
+                        <label class="field-label">Аватар</label>
+                        <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
+                        <button type="button" id="profile-avatar-btn" class="btn btn-secondary">Загрузить фото</button>
+                        <button type="button" id="profile-avatar-reset" class="btn btn-mini">Сбросить</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="profile_icon">Иконка в шапке</label>
+                    <div id="app-icon-picker" class="icon-picker"></div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="profile_username">Имя пользователя</label>
+                    <input type="text" id="field-username" class="field-input" disabled>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="profile_email">Email</label>
+                    <div class="field-row">
+                        <input type="email" id="field-email" class="field-input" placeholder="user@example.com">
+                        <button id="email-verify-btn" class="btn btn-primary" type="button">Подтвердить</button>
+                    </div>
+                    <span id="email-badge" class="badge badge-unverified">Не подтверждён</span>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="profile_phone">Телефон</label>
+                    <div class="field-row">
+                        <input type="tel" id="field-phone" class="field-input" placeholder="+7 999 123-45-67">
+                        <button id="phone-verify-btn" class="btn btn-primary" type="button">Подтвердить</button>
+                    </div>
+                    <span id="phone-badge" class="badge badge-unverified">Не подтверждён</span>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="profile_status">Статус</label>
+                    <input type="text" id="field-status" class="field-input" maxlength="80" placeholder="Немного о себе...">
+                    <button id="save-status-btn" class="btn btn-secondary" type="button" data-i18n="save">Сохранить</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. БЕЗОПАСНОСТЬ -->
+        <section class="settings-section" data-section="security">
+            <button class="section-header" type="button">
+                <span class="section-icon">🔒</span>
+                <span class="section-title" data-i18n="section_security">Безопасность</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <h3 class="subsection-title" data-i18n="security_change_password">Смена пароля</h3>
+                <div class="field">
+                    <input type="password" id="old-password" class="field-input" placeholder="Старый пароль" autocomplete="current-password">
+                </div>
+                <div class="field">
+                    <input type="password" id="new-password" class="field-input" placeholder="Новый пароль" autocomplete="new-password">
+                </div>
+                <div class="field">
+                    <input type="password" id="confirm-password" class="field-input" placeholder="Повторите пароль" autocomplete="new-password">
+                </div>
+                <button id="change-password-btn" class="btn btn-primary" type="button" data-i18n="save">Сохранить</button>
+
+                <hr class="divider">
+
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <span class="toggle-label" data-i18n="security_2fa_enable">Включить 2FA</span>
+                        <span class="toggle-hint" data-i18n="security_2fa">Двухфакторная аутентификация</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-2fa">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <span class="toggle-label" data-i18n="security_incognito">Режим инкогнито</span>
+                        <span class="toggle-hint" data-i18n="security_incognito_hint">Скрывает онлайн-статус и прочтение</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-incognito">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <span class="toggle-label" data-i18n="security_hide_last_seen">Показывать время последнего входа</span>
+                        <span class="toggle-hint" data-i18n="security_hide_last_seen_hint">Если выключено — только «был недавно»</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-hide-last-seen" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <hr class="divider">
+
+                <h3 class="subsection-title">Чёрный список</h3>
+                <div class="field-row">
+                    <input type="text" id="block-username-input" class="field-input" placeholder="username">
+                    <button id="block-user-btn" class="btn btn-danger" type="button" data-i18n="add">Добавить</button>
+                </div>
+                <div id="blocked-users-list" class="blocked-users-list"></div>
+            </div>
+        </section>
+
+        <!-- 3. ВНЕШНИЙ ВИД -->
+        <section class="settings-section" data-section="appearance">
+            <button class="section-header" type="button">
+                <span class="section-icon">🎨</span>
+                <span class="section-title" data-i18n="section_appearance">Внешний вид</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="field">
+                    <label class="field-label" data-i18n="appearance_theme">Тема</label>
+                    <div class="theme-picker" id="theme-picker">
+                        <button class="theme-option" data-theme="light" type="button" data-i18n="appearance_theme_light">Светлая</button>
+                        <button class="theme-option" data-theme="dark" type="button" data-i18n="appearance_theme_dark">Тёмная</button>
+                        <button class="theme-option" data-theme="system" type="button" data-i18n="appearance_theme_system">Системная</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="appearance_accent">Акцентный цвет</label>
+                    <div class="accent-picker" id="accent-picker"></div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="appearance_font_size">Размер текста</label>
+                    <div class="range-row">
+                        <input type="range" id="font-size-range" min="12" max="20" step="1" value="15">
+                        <span id="font-size-value" class="range-value">15px</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="field-label" data-i18n="appearance_language">Язык</label>
+                    <div class="lang-picker" id="lang-picker">
+                        <button class="lang-option" data-lang="ru" type="button">🇷🇺 Русский</button>
+                        <button class="lang-option" data-lang="en" type="button">🇬🇧 English</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. УВЕДОМЛЕНИЯ -->
+        <section class="settings-section" data-section="notifications">
+            <button class="section-header" type="button">
+                <span class="section-icon">🔔</span>
+                <span class="section-title" data-i18n="section_notifications">Уведомления</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_enabled">Включить уведомления</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notifications-enabled" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_sound">Звук уведомлений</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notifications-sound" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_vibrate">Вибрация</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notifications-vibrate" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_badge">Бейдж с числом непрочитанных</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notifications-badge" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <hr class="divider">
+
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_personal">Личные сообщения</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notify-personal" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_groups">Группы</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notify-groups" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_channels">Каналы</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notify-channels" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_mentions">Упоминания</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notify-mentions" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <hr class="divider">
+
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_quiet_hours">Тихие часы</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-quiet-hours">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="field-row" id="quiet-hours-row">
+                    <label class="field-label" data-i18n="notify_quiet_hours_from">с</label>
+                    <input type="time" id="quiet-hours-from" class="field-input" value="23:00">
+                    <label class="field-label" data-i18n="notify_quiet_hours_to">до</label>
+                    <input type="time" id="quiet-hours-to" class="field-input" value="08:00">
+                </div>
+
+                <hr class="divider">
+
+                <div class="field">
+                    <label class="field-label" data-i18n="notify_email">Email для уведомлений</label>
+                    <input type="email" id="notify-email-input" class="field-input" placeholder="user@yandex.ru">
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="notify_email_enabled">Пересылать на почту</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-notify-email">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. ЗВУКИ -->
+        <section class="settings-section" data-section="sounds">
+            <button class="section-header" type="button">
+                <span class="section-icon">🔊</span>
+                <span class="section-title" data-i18n="section_sounds">Звуки</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="sounds_message">Звук нового сообщения</span>
+                    <div class="toggle-with-btn">
+                        <button id="test-message-sound" class="btn btn-mini" type="button" data-i18n="test">Тест</button>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-sound-message" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="toggle-row">
+                    <span class="toggle-label" data-i18n="sounds_sent">Звук отправки</span>
+                    <div class="toggle-with-btn">
+                        <button id="test-sent-sound" class="btn btn-mini" type="button" data-i18n="test">Тест</button>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-sound-sent" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. ДАННЫЕ -->
+        <section class="settings-section" data-section="data">
+            <button class="section-header" type="button">
+                <span class="section-icon">💾</span>
+                <span class="section-title" data-i18n="section_data">Данные</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <h3 class="subsection-title" data-i18n="data_backup">Резервная копия</h3>
+                <p class="hint" data-i18n="data_export_hint">Создать JSON-файл с настройками и 4 ключами для входа на новом устройстве</p>
+                <button id="export-backup-btn" class="btn btn-primary" type="button" data-i18n="data_export">Создать бэкап</button>
+
+                <p class="hint" data-i18n="data_import_hint">Восстановить из JSON-файла</p>
+                <button id="import-backup-btn" class="btn btn-secondary" type="button" data-i18n="data_import">Импорт данных</button>
+                <input type="file" id="import-backup-input" accept=".json" style="display:none;">
+
+                <hr class="divider">
+
+                <h3 class="subsection-title" data-i18n="data_clear_cache">Очистить кэш</h3>
+                <p class="hint" data-i18n="data_clear_cache_hint">Удалить локальные данные (кроме аккаунта)</p>
+                <button id="clear-cache-btn" class="btn btn-danger" type="button" data-i18n="data_clear_cache">Очистить кэш</button>
+            </div>
+        </section>
+
+        <!-- 7. ПРИЛОЖЕНИЕ -->
+        <section class="settings-section" data-section="app">
+            <button class="section-header" type="button">
+                <span class="section-icon">📱</span>
+                <span class="section-title" data-i18n="section_app">Приложение</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="field">
+                    <label class="field-label" data-i18n="app_status">Статус</label>
+                    <div id="app-status-indicator" class="app-status-indicator">
+                        <span data-i18n="app_status_in_browser">🌐 Вы на сайте</span>
+                    </div>
+                </div>
+                <button id="download-apk-btn" class="btn btn-primary" type="button" data-i18n="app_download_apk">Скачать APK</button>
+                <button id="check-updates-btn" class="btn btn-secondary" type="button" data-i18n="app_check_updates">Проверить обновления</button>
+            </div>
+        </section>
+
+        <!-- 8. О СИСТЕМЕ -->
+        <section class="settings-section" data-section="about">
+            <button class="section-header" type="button">
+                <span class="section-icon">ℹ️</span>
+                <span class="section-title" data-i18n="section_about">О системе</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="about-row">
+                    <span class="about-label" data-i18n="about_version">Версия</span>
+                    <span class="about-value" id="about-version">1.0.0</span>
+                </div>
+                <div class="about-row">
+                    <span class="about-label" data-i18n="about_developer">Разработчик</span>
+                    <span class="about-value" id="about-developer">Лето Team</span>
+                </div>
+                <div class="about-row">
+                    <span class="about-label" data-i18n="about_tech">Технологии</span>
+                    <span class="about-value" data-i18n="about_tech_value">Supabase + Vanilla JS</span>
+                </div>
+            </div>
+        </section>
+
+        <button id="back-to-messenger-btn" class="btn btn-primary btn-full" type="button" data-i18n="back_to_messenger">Назад в мессенджер</button>
+
+    </main>
+</div>
+
+<div id="confirm-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 id="confirm-modal-title" class="modal-title">Подтверждение</h3>
+        <p id="confirm-modal-text" class="modal-text"></p>
+        <div class="modal-actions">
+            <button id="confirm-modal-cancel" class="btn btn-secondary" type="button" data-i18n="cancel">Отмена</button>
+            <button id="confirm-modal-ok" class="btn btn-danger" type="button" data-i18n="confirm">Подтвердить</button>
+        </div>
+    </div>
+</div>
+
+<div id="code-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 class="modal-title" data-i18n="twofa_title">Введите код из письма</h3>
+        <p class="modal-text" id="modal-description">Мы отправили код на email</p>
+        <div class="code-inputs">
+            <input type="text" class="code-digit" data-index="0" maxlength="1" inputmode="numeric">
+            <input type="text" class="code-digit" data-index="1" maxlength="1" inputmode="numeric">
+            <input type="text" class="code-digit" data-index="2" maxlength="1" inputmode="numeric">
+            <input type="text" class="code-digit" data-index="3" maxlength="1" inputmode="numeric">
+        </div>
+        <div id="modal-status" class="modal-status"></div>
+        <a id="resend-link" class="resend-link disabled" href="#">Отправить код повторно</a>
+        <div class="modal-actions">
+            <button id="code-modal-cancel" class="btn btn-secondary" type="button" data-i18n="cancel">Отмена</button>
+            <button id="code-modal-confirm" class="btn btn-primary" type="button" data-i18n="twofa_confirm">Подтвердить</button>
+        </div>
+    </div>
+</div>
+
+<div id="leto-toast-container" class="leto-toast-container"></div>
+
+<script src="settings-config.js"></script>
+<script src="settings.js"></script>
+</body>
+</html>
