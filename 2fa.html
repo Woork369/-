@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Подтверждение — Лето</title>
+    <link rel="stylesheet" href="settings.css">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--bg-main);
+            padding: 20px 0;
+        }
+        .twofa-box {
+            background: var(--bg-white);
+            padding: 40px 30px;
+            border-radius: 20px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        .twofa-logo { font-size: 56px; margin-bottom: 16px; }
+        .twofa-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .twofa-hint { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="twofa-box">
+    <div class="twofa-logo">☀️</div>
+    <h2 class="twofa-title" data-i18n="twofa_title">Введите код из письма</h2>
+    <p class="twofa-hint" id="twofa-hint">Загрузка...</p>
+
+    <div class="code-inputs">
+        <input type="text" class="code-digit" data-index="0" maxlength="1" inputmode="numeric" autofocus>
+        <input type="text" class="code-digit" data-index="1" maxlength="1" inputmode="numeric">
+        <input type="text" class="code-digit" data-index="2" maxlength="1" inputmode="numeric">
+        <input type="text" class="code-digit" data-index="3" maxlength="1" inputmode="numeric">
+    </div>
+
+    <div id="twofa-status" class="modal-status"></div>
+
+    <a id="twofa-resend" class="resend-link disabled" href="#">Отправить код повторно</a>
+
+    <div style="margin-top:20px;">
+        <button id="twofa-confirm" class="btn btn-primary btn-full" type="button" data-i18n="twofa_confirm">Подтвердить</button>
+    </div>
+</div>
+
+<div id="leto-toast-container" class="leto-toast-container"></div>
+
+<script src="settings-config.js"></script>
+<script src="2fa.js"></script>
+</body>
+</html>
