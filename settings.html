@@ -18,17 +18,17 @@
                 <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
         </button>
-        <h1 class="header-title" data-i18n="settings_title">Настройки</h1>
+        <h1 class="header-title">Настройки</h1>
         <div class="header-spacer"></div>
     </header>
 
     <main class="settings-content">
 
-        <!-- 1. ПРОФИЛЬ -->
+        <!-- ПРОФИЛЬ -->
         <section class="settings-section" data-section="profile">
             <button class="section-header" type="button">
                 <span class="section-icon">👤</span>
-                <span class="section-title" data-i18n="section_profile">Профиль</span>
+                <span class="section-title">Профиль</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -45,43 +45,48 @@
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="profile_icon">Иконка в шапке</label>
+                    <label class="field-label">Иконка в шапке</label>
                     <div id="app-icon-picker" class="icon-picker"></div>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="profile_username">Имя пользователя</label>
+                    <label class="field-label">Имя пользователя</label>
                     <input type="text" id="field-username" class="field-input" disabled>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="profile_email">Email</label>
-                    <div class="field-row">
-                        <input type="email" id="field-email" class="field-input" placeholder="user@example.com">
-                        <button id="email-verify-btn" class="btn btn-primary" type="button">Подтвердить</button>
+                    <label class="field-label">Email</label>
+                    <div class="email-block" id="email-block">
+                        <div class="email-block-row">
+                            <input type="email" id="field-email" class="field-input" placeholder="user@example.com">
+                            <button id="email-verify-btn" class="btn btn-primary" type="button">Подтвердить</button>
+                        </div>
+                        <div class="email-status-bar">
+                            <span class="email-status-icon" id="email-status-icon">○</span>
+                            <span class="email-status-text" id="email-status-text">Email не привязан</span>
+                        </div>
                     </div>
-                    <span id="email-badge" class="badge badge-unverified">Не подтверждён</span>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="profile_status">Статус</label>
+                    <label class="field-label">Статус</label>
                     <input type="text" id="field-status" class="field-input" maxlength="80" placeholder="Немного о себе...">
-                    <button id="save-status-btn" class="btn btn-secondary" type="button" data-i18n="save">Сохранить</button>
+                    <button id="save-status-btn" class="btn btn-secondary" type="button">Сохранить</button>
                 </div>
             </div>
         </section>
 
-        <!-- 2. БЕЗОПАСНОСТЬ -->
+        <!-- БЕЗОПАСНОСТЬ -->
         <section class="settings-section" data-section="security">
             <button class="section-header" type="button">
                 <span class="section-icon">🔒</span>
-                <span class="section-title" data-i18n="section_security">Безопасность</span>
+                <span class="section-title">Безопасность</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </button>
             <div class="section-body">
-                <h3 class="subsection-title" data-i18n="security_change_password">Смена пароля</h3>
+                <h3 class="subsection-title">Смена пароля</h3>
                 <div class="field">
                     <input type="password" id="old-password" class="field-input" placeholder="Старый пароль">
                 </div>
@@ -91,14 +96,14 @@
                 <div class="field">
                     <input type="password" id="confirm-password" class="field-input" placeholder="Повторите пароль">
                 </div>
-                <button id="change-password-btn" class="btn btn-primary" type="button" data-i18n="save">Сохранить</button>
+                <button id="change-password-btn" class="btn btn-primary" type="button">Сохранить</button>
 
                 <hr class="divider">
 
                 <div class="toggle-row">
                     <div class="toggle-info">
-                        <span class="toggle-label" data-i18n="security_2fa_enable">Включить 2FA</span>
-                        <span class="toggle-hint" data-i18n="security_2fa">Двухфакторная аутентификация</span>
+                        <span class="toggle-label">Включить 2FA</span>
+                        <span class="toggle-hint">Двухфакторная аутентификация</span>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-2fa">
@@ -108,8 +113,8 @@
 
                 <div class="toggle-row">
                     <div class="toggle-info">
-                        <span class="toggle-label" data-i18n="security_incognito">Режим инкогнито</span>
-                        <span class="toggle-hint" data-i18n="security_incognito_hint">Скрывает онлайн-статус и прочтение</span>
+                        <span class="toggle-label">Режим инкогнито</span>
+                        <span class="toggle-hint">Скрывает онлайн-статус и прочтение</span>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-incognito">
@@ -119,30 +124,21 @@
 
                 <div class="toggle-row">
                     <div class="toggle-info">
-                        <span class="toggle-label" data-i18n="security_hide_last_seen">Показывать время последнего входа</span>
+                        <span class="toggle-label">Показывать время последнего входа</span>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-hide-last-seen" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-
-                <hr class="divider">
-
-                <h3 class="subsection-title">Чёрный список</h3>
-                <div class="field-row">
-                    <input type="text" id="block-username-input" class="field-input" placeholder="username">
-                    <button id="block-user-btn" class="btn btn-danger" type="button" data-i18n="add">Добавить</button>
-                </div>
-                <div id="blocked-users-list" class="blocked-users-list"></div>
             </div>
         </section>
 
-        <!-- 3. ВНЕШНИЙ ВИД -->
+        <!-- ВНЕШНИЙ ВИД -->
         <section class="settings-section" data-section="appearance">
             <button class="section-header" type="button">
                 <span class="section-icon">🎨</span>
-                <span class="section-title" data-i18n="section_appearance">Внешний вид</span>
+                <span class="section-title">Внешний вид</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -156,86 +152,91 @@
                             <div class="preview-chat-avatar" id="preview-chat-avatar">☀️</div>
                             <div class="preview-chat-title">
                                 <span id="preview-chat-name">Лето</span>
-                                <span class="preview-chat-status">в сети</span>
+                                <span class="preview-chat-status">• в сети</span>
                             </div>
                         </div>
                         <div class="preview-chat-body">
-                            <div class="preview-msg other"><div class="preview-bubble">Привет! Как тебе Лето?</div></div>
-                            <div class="preview-msg my"><div class="preview-bubble">Отлично! Тема огонь 🔥</div></div>
-                            <div class="preview-msg other"><div class="preview-bubble">Согласен ☀️</div></div>
+                            <div class="preview-msg other">
+                                <div class="preview-msg-avatar"></div>
+                                <div class="preview-bubble">Привет! Как тебе Лето?<span class="preview-bubble-time">12:30</span></div>
+                            </div>
+                            <div class="preview-msg my">
+                                <div class="preview-bubble">Отлично! Тема огонь 🔥<span class="preview-bubble-time">12:31 ✓✓</span></div>
+                            </div>
+                            <div class="preview-msg other">
+                                <div class="preview-msg-avatar"></div>
+                                <div class="preview-bubble">Согласен ☀️<span class="preview-bubble-time">12:31</span></div>
+                            </div>
                         </div>
                         <div class="preview-chat-input">
-                            <input type="text" placeholder="Сообщение..." disabled>
-                            <button disabled>➤</button>
+                            <input type="text" placeholder="Напишите сообщение..." disabled>
+                            <button disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="appearance_theme">Тема</label>
+                    <label class="field-label">Тема</label>
                     <div class="theme-picker" id="theme-picker">
-                        <button class="theme-option" data-theme="light" type="button" data-i18n="appearance_theme_light">Светлая</button>
-                        <button class="theme-option" data-theme="dark" type="button" data-i18n="appearance_theme_dark">Тёмная</button>
-                        <button class="theme-option" data-theme="system" type="button" data-i18n="appearance_theme_system">Системная</button>
+                        <button class="theme-option" data-theme="light" type="button">Светлая</button>
+                        <button class="theme-option" data-theme="dark" type="button">Тёмная</button>
+                        <button class="theme-option" data-theme="system" type="button">Системная</button>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="appearance_accent">Акцентный цвет</label>
+                    <label class="field-label">Акцентный цвет</label>
                     <div class="accent-picker" id="accent-picker"></div>
                 </div>
 
                 <div class="field">
-                    <label class="field-label" data-i18n="appearance_font_size">Размер текста</label>
+                    <label class="field-label">Размер текста</label>
                     <div class="range-row">
                         <input type="range" id="font-size-range" min="12" max="20" step="1" value="15">
                         <span id="font-size-value" class="range-value">15px</span>
                     </div>
                 </div>
-
-                <div class="field">
-                    <label class="field-label" data-i18n="appearance_language">Язык</label>
-                    <div class="lang-picker" id="lang-picker">
-                        <button class="lang-option" data-lang="ru" type="button">🇷🇺 Русский</button>
-                        <button class="lang-option" data-lang="en" type="button">🇬🇧 English</button>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <!-- 4. УВЕДОМЛЕНИЯ -->
+        <!-- УВЕДОМЛЕНИЯ -->
         <section class="settings-section" data-section="notifications">
             <button class="section-header" type="button">
                 <span class="section-icon">🔔</span>
-                <span class="section-title" data-i18n="section_notifications">Уведомления</span>
+                <span class="section-title">Уведомления</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </button>
             <div class="section-body">
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_enabled">Включить уведомления</span>
+                    <span class="toggle-label">Включить уведомления</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notifications-enabled" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_sound">Звук уведомлений</span>
+                    <span class="toggle-label">Звук уведомлений</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notifications-sound" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_vibrate">Вибрация</span>
+                    <span class="toggle-label">Вибрация</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notifications-vibrate" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_badge">Бейдж</span>
+                    <span class="toggle-label">Бейдж</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notifications-badge" checked>
                         <span class="toggle-slider"></span>
@@ -245,28 +246,28 @@
                 <hr class="divider">
 
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_personal">Личные сообщения</span>
+                    <span class="toggle-label">Личные сообщения</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notify-personal" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_groups">Группы</span>
+                    <span class="toggle-label">Группы</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notify-groups" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_channels">Каналы</span>
+                    <span class="toggle-label">Каналы</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notify-channels" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_mentions">Упоминания</span>
+                    <span class="toggle-label">Упоминания</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notify-mentions" checked>
                         <span class="toggle-slider"></span>
@@ -276,7 +277,7 @@
                 <hr class="divider">
 
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_quiet_hours">Тихие часы</span>
+                    <span class="toggle-label">Тихие часы</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-quiet-hours">
                         <span class="toggle-slider"></span>
@@ -291,12 +292,9 @@
 
                 <hr class="divider">
 
-                <div class="field">
-                    <label class="field-label" data-i18n="notify_email">Email для уведомлений</label>
-                    <input type="email" id="notify-email-input" class="field-input" placeholder="user@yandex.ru">
-                </div>
+                <h3 class="subsection-title">Email для уведомлений</h3>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="notify_email_enabled">Пересылать на почту</span>
+                    <span class="toggle-label">Пересылать на почту</span>
                     <label class="toggle-switch">
                         <input type="checkbox" id="toggle-notify-email">
                         <span class="toggle-slider"></span>
@@ -305,18 +303,18 @@
             </div>
         </section>
 
-        <!-- 5. ЗВУКИ -->
+        <!-- ЗВУКИ -->
         <section class="settings-section" data-section="sounds">
             <button class="section-header" type="button">
                 <span class="section-icon">🔊</span>
-                <span class="section-title" data-i18n="section_sounds">Звуки</span>
+                <span class="section-title">Звуки</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </button>
             <div class="section-body">
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="sounds_message">Звук нового сообщения</span>
+                    <span class="toggle-label">Звук нового сообщения</span>
                     <div class="toggle-with-btn">
                         <button id="test-message-sound" class="btn btn-mini" type="button">Тест</button>
                         <label class="toggle-switch">
@@ -326,7 +324,7 @@
                     </div>
                 </div>
                 <div class="toggle-row">
-                    <span class="toggle-label" data-i18n="sounds_sent">Звук отправки</span>
+                    <span class="toggle-label">Звук отправки</span>
                     <div class="toggle-with-btn">
                         <button id="test-sent-sound" class="btn btn-mini" type="button">Тест</button>
                         <label class="toggle-switch">
@@ -338,11 +336,11 @@
             </div>
         </section>
 
-        <!-- 6. ДАННЫЕ -->
+        <!-- ДАННЫЕ -->
         <section class="settings-section" data-section="data">
             <button class="section-header" type="button">
                 <span class="section-icon">💾</span>
-                <span class="section-title" data-i18n="section_data">Данные</span>
+                <span class="section-title">Данные</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -377,11 +375,11 @@
             </div>
         </section>
 
-        <!-- 7. ПРИЛОЖЕНИЕ -->
+        <!-- ПРИЛОЖЕНИЕ -->
         <section class="settings-section" data-section="app">
             <button class="section-header" type="button">
                 <span class="section-icon">📱</span>
-                <span class="section-title" data-i18n="section_app">Приложение</span>
+                <span class="section-title">Приложение</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -396,11 +394,11 @@
             </div>
         </section>
 
-        <!-- 8. О СИСТЕМЕ -->
+        <!-- О СИСТЕМЕ -->
         <section class="settings-section" data-section="about">
             <button class="section-header" type="button">
                 <span class="section-icon">ℹ️</span>
-                <span class="section-title" data-i18n="section_about">О системе</span>
+                <span class="section-title">О системе</span>
                 <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
@@ -422,6 +420,7 @@
     </main>
 </div>
 
+<!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ -->
 <div id="confirm-modal" class="modal-overlay">
     <div class="modal-card">
         <h3 id="confirm-modal-title" class="modal-title">Подтверждение</h3>
@@ -433,6 +432,7 @@
     </div>
 </div>
 
+<!-- МОДАЛКА КОДА -->
 <div id="code-modal" class="modal-overlay">
     <div class="modal-card">
         <h3 class="modal-title">Введите код из письма</h3>

@@ -1,5 +1,6 @@
 // =======================================================
-// ☀️ МЕССЕНДЖЕР «ЛЕТО» — с кэшем, push, галочками, подписками
+// ☀️ МЕССЕНДЖЕР «ЛЕТО» — с кэшем, push, галочками
+// 2FA проверяется только при входе (в script.js), не здесь
 // =======================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -50,12 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const currentActiveUser = localStorage.getItem('leto_active_user');
     if (!currentActiveUser) { window.location.href = "index.html"; return; }
-
-    if (LocalStore.get('two_factor_enabled', false) === true
-        && sessionStorage.getItem('leto_2fa_passed') !== 'true') {
-        window.location.href = "2fa.html";
-        return;
-    }
 
     DeviceApproval.startPollingAsTrustedDevice(currentActiveUser, (payload) => {
         showDeviceApprovalScreen(payload);
@@ -138,12 +133,6 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             localStorage.setItem(AVATAR_CACHE_KEY, JSON.stringify(avatarCache));
         } catch (e) {}
-    }
-
-    function hashCode(str) {
-        let h = 0;
-        for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
-        return Math.abs(h);
     }
 
     async function fetchAvatarUrl(username) {
@@ -297,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (LocalStore.get('notifications_sound', true) === false) return;
         if (type === 'message' && LocalStore.get('sound_message', true) === false) return;
         if (type === 'sent' && LocalStore.get('sound_sent', true) === false) return;
-        const file = type === 'sent' ? 'sounds/sent.mp3' : 'sounds/message.mp3';
+        const file = type === 'sent' ? 'sent.mp3' : 'message.mp3';
         try { new Audio(file).play().catch(() => {}); } catch (e) {}
     }
 
@@ -317,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =======================================================
-    // === EMAIL-УВЕДОМЛЕНИЯ (получателю) ===
+    // === EMAIL-УВЕДОМЛЕНИЯ ===
     // =======================================================
     async function sendEmailNotification(msg) {
         const recipient = msg.receiver;
@@ -463,7 +452,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const cache = readCacheMessages();
         const key = cacheKey(chatType, target);
 
-        // удалить старые по этому ключу
         const filtered = cache.filter(m => m.__cacheKey !== key);
         messages.forEach(m => {
             filtered.push({ ...m, __cacheKey: key });
@@ -592,7 +580,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (!data || data.length === 0) {
-                // fallback на кэш
                 const cached = getChatsFromCache(currentChatType);
                 if (cached.length > 0) {
                     renderChatsList(cached);
@@ -969,7 +956,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const blockArr = Array.isArray(blocked) ? blocked : [];
             messages = messages.filter(m => !blockArr.includes(m.sender));
 
-            // сохраняем в кэш
             saveMessagesToCache(currentChatType, activeChatTarget, messages);
 
             if (messages.length > lastMessagesCount && lastMessagesCount > 0) {
@@ -990,7 +976,6 @@ document.addEventListener('DOMContentLoaded', function() {
             renderMessages(messages);
         })
         .catch(() => {
-            // fallback на кэш
             const cached = getMessagesFromCache(currentChatType, activeChatTarget);
             if (cached.length > 0) {
                 messagesScreen.innerHTML = '<div class="status-message">📦 Показан кэш (нет сети)</div>';

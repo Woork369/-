@@ -1,13 +1,11 @@
 // =======================================================
 // ☀️ АВТОРИЗАЦИЯ «ЛЕТО»
 // Обычный вход + регистрация + 3 альтернативных способа
+// 2FA проверяется ТОЛЬКО при входе (кроме email-кода)
 // =======================================================
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // =======================================================
-    // КОНСТАНТЫ
-    // =======================================================
     const MY_SUPABASE_URL = "https://rvmtghettsndnnhdeasx.supabase.co";
     const MY_SERVER_KEY   = "sb_publishable_GQxHLUlRpEVdmFeq_UKcqA_PPdYfm_Q";
 
@@ -48,11 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function showScreen(name) {
-        // Скрываем все экраны
         Object.values(screens).forEach(s => {
             if (s) s.classList.remove('active');
         });
-        // Показываем нужный
         if (screens[name]) screens[name].classList.add('active');
     }
 
@@ -154,7 +150,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!res.ok) throw new Error("Не удалось сохранить данные на сервере.");
 
+            // Создаём профиль
+            await fetch(PROFILES_URL, {
+                method: "POST", headers: HEADERS_POST,
+                body: JSON.stringify({
+                    username: username,
+                    two_factor_enabled: false,
+                    notify_email_enabled: false,
+                    email_verified: false
+                })
+            });
+
             localStorage.setItem('leto_active_user', username);
+            sessionStorage.setItem('leto_2fa_passed', 'true');
             authMessage.className = "message-box success";
             authMessage.textContent = "Регистрация успешна! Переход...";
             setTimeout(() => { window.location.href = "messenger.html"; }, 1200);
@@ -200,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 authMessage.textContent = "Введите код из письма...";
                 setTimeout(() => { window.location.href = "2fa.html"; }, 900);
             } else {
+                sessionStorage.setItem('leto_2fa_passed', 'true');
                 authMessage.className = "message-box success";
                 authMessage.textContent = "Вход выполнен! Переход...";
                 setTimeout(() => { window.location.href = "messenger.html"; }, 1200);
@@ -255,13 +264,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Кнопки "Назад" возвращают на главный экран
     document.querySelectorAll('[data-back]').forEach(btn => {
         btn.addEventListener('click', () => showScreen('main'));
     });
 
     // =======================================================
     // СПОСОБ 1 — ВХОД ПО EMAIL
+    // (после него НЕ спрашиваем 2FA — канал тот же)
     // =======================================================
     const emailNickname = document.getElementById('email-nickname');
     const emailSendBtn = document.getElementById('email-send-btn');
@@ -275,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let emailResendTimer = null;
     let emailResendSec = 0;
+    let savedEmailUsername = '';
 
     emailSendBtn.addEventListener('click', async () => {
         const u = emailNickname.value.trim().toLowerCase();
@@ -298,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            savedEmailUsername = u;
             const code = String(Math.floor(1000 + Math.random() * 9000));
             localStorage.setItem('leto_pending_code_2fa', JSON.stringify({
                 code: code, target: email, timestamp: Date.now(), username: u
@@ -313,7 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     template_params: {
                         to_email: email,
                         name: 'Пользователь Лето',
-                        verification_code: code
+                        verification_code: code,
+                        auth_code: code
                     }
                 })
             });
@@ -371,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     emailResend.addEventListener('click', (e) => {
         e.preventDefault();
         if (emailResendSec > 0) return;
+        if (!savedEmailUsername) return;
         emailSendBtn.click();
     });
 
@@ -390,6 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (code === stored.code) {
             localStorage.removeItem('leto_pending_code_2fa');
+            // После email-входа НЕ спрашиваем 2FA повторно
             localStorage.setItem('leto_active_user', stored.username);
             sessionStorage.setItem('leto_2fa_passed', 'true');
             setEmailCodeStatus('Успех! Переход...', 'success');
@@ -403,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =======================================================
     // СПОСОБ 2 — ВХОД ПО ДРУГОМУ УСТРОЙСТВУ
+    // (после него — 2FA, если включена)
     // =======================================================
     const deviceNickname = document.getElementById('device-nickname');
     const deviceSendBtn = document.getElementById('device-send-btn');
@@ -455,6 +470,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (result.approved) {
+                // Проверяем 2FA перед входом
+                const twoFAEnabled = await is2FAEnabled(u);
+                if (twoFAEnabled) {
+                    const email = await getUserEmail(u);
+                    if (email) {
+                        localStorage.setItem('leto_active_user', u);
+                        sessionStorage.removeItem('leto_2fa_passed');
+                        setDeviceCodeStatus('Подтверждено! Требуется 2FA...', 'success');
+                        setTimeout(() => { window.location.href = '2fa.html'; }, 900);
+                        return;
+                    }
+                }
                 localStorage.setItem('leto_active_user', u);
                 sessionStorage.setItem('leto_2fa_passed', 'true');
                 setDeviceCodeStatus('Подтверждено! Переход...', 'success');
@@ -469,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =======================================================
     // СПОСОБ 3 — ВХОД ПО БЭКАПУ
+    // (после него — 2FA, если включена)
     // =======================================================
     const backupNickname = document.getElementById('backup-nickname');
     const backupFileInput = document.getElementById('backup-file-input');
@@ -538,6 +566,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: "DELETE", headers: HEADERS_GET
             });
 
+            // Проверяем 2FA перед входом
+            const twoFAEnabled = await is2FAEnabled(u);
+            if (twoFAEnabled) {
+                const email = await getUserEmail(u);
+                if (email) {
+                    localStorage.setItem('leto_active_user', u);
+                    sessionStorage.removeItem('leto_2fa_passed');
+                    setBackupStatus('Бэкап подтверждён! Требуется 2FA...', 'success');
+                    setTimeout(() => { window.location.href = '2fa.html'; }, 900);
+                    return;
+                }
+            }
             localStorage.setItem('leto_active_user', u);
             sessionStorage.setItem('leto_2fa_passed', 'true');
             setBackupStatus('Бэкап подтверждён! Переход...', 'success');

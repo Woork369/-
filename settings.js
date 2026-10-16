@@ -1,5 +1,8 @@
 // =======================================================
 // ☀️ НАСТРОЙКИ МЕССЕНДЖЕРА «ЛЕТО»
+// Email хранится ТОЛЬКО на сервере
+// Звуки в корне проекта (без папки sounds/)
+// Чёрный список УДАЛЁН
 // =======================================================
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,30 +18,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const activeUser = getActiveUser();
     if (!activeUser) { window.location.href = "index.html"; return; }
 
-    let currentVerifyType = null;
     let pendingCode = null;
     let resendTimer = null;
     let resendSeconds = 0;
     let confirmCallback = null;
 
+    let currentEmail = '';
+    let emailVerified = false;
+
     const CACHE_MESSAGES_KEY = 'leto_cache_messages';
     const CACHE_CHATS_KEY = 'leto_cache_chats';
 
+    // =======================================================
+    // TOAST
+    // =======================================================
     function showToast(text, type) {
         const container = document.getElementById('leto-toast-container');
         if (!container) return;
         const toast = document.createElement('div');
         toast.className = 'leto-toast';
         const icon = type === 'error' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️';
-        toast.innerHTML = `<span>${icon}</span><span>${text}</span>`;
+        toast.innerHTML = '<span>' + icon + '</span><span>' + text + '</span>';
         container.appendChild(toast);
-        setTimeout(() => {
+        setTimeout(function() {
             toast.classList.add('leto-toast-hide');
-            setTimeout(() => toast.remove(), 300);
+            setTimeout(function() { toast.remove(); }, 300);
         }, 3000);
         while (container.children.length > 3) container.firstChild.remove();
     }
 
+    // =======================================================
+    // CONFIRM DIALOG
+    // =======================================================
     function confirmDialog(title, text, onOk) {
         const modal = document.getElementById('confirm-modal');
         document.getElementById('confirm-modal-title').textContent = title;
@@ -53,11 +64,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('confirm-modal-cancel').addEventListener('click', closeConfirm);
-    document.getElementById('confirm-modal-ok').addEventListener('click', () => {
+    document.getElementById('confirm-modal-ok').addEventListener('click', function() {
         if (confirmCallback) confirmCallback();
         closeConfirm();
     });
 
+    // =======================================================
+    // ТЕМА / АКЦЕНТ / ШРИФТ
+    // =======================================================
     function applyTheme(theme) {
         let actual = theme;
         if (theme === 'system') {
@@ -71,13 +85,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function applyFontSize(size) {
-        document.querySelectorAll('.preview-bubble').forEach(b => b.style.fontSize = size + 'px');
+        document.querySelectorAll('.preview-bubble').forEach(function(b) {
+            b.style.fontSize = size + 'px';
+        });
     }
 
     applyTheme(LocalStore.get('theme', 'light'));
     applyAccent(LocalStore.get('accent_color', '#007aff'));
     applyFontSize(LocalStore.get('font_size', 15));
 
+    // =======================================================
+    // ПРОФИЛЬ
+    // =======================================================
     async function patchProfile(fields) {
         try {
             const checkRes = await fetch(
@@ -93,24 +112,79 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 await fetch(PROFILES_URL, {
                     method: "POST", headers: HEADERS,
-                    body: JSON.stringify({ username: activeUser, ...fields })
+                    body: JSON.stringify(Object.assign({ username: activeUser }, fields))
                 });
             }
-        } catch (e) {}
+        } catch (e) {
+            console.warn('patchProfile error:', e);
+        }
     }
 
+    // =======================================================
+    // EMAIL С СЕРВЕРА
+    // =======================================================
+    async function loadEmailFromServer() {
+        try {
+            const res = await fetch(
+                PROFILES_URL + "?username=eq." + encodeURIComponent(activeUser) +
+                "&select=notify_email,email_verified,notify_email_enabled",
+                { method: "GET", headers: HEADERS_GET }
+            );
+            const rows = await res.json();
+            if (rows && rows[0]) {
+                currentEmail = rows[0].notify_email || '';
+                emailVerified = rows[0].email_verified === true;
+                const emailInput = document.getElementById('field-email');
+                if (emailInput) emailInput.value = currentEmail;
+                const toggleNotifyEmail = document.getElementById('toggle-notify-email');
+                if (toggleNotifyEmail) toggleNotifyEmail.checked = rows[0].notify_email_enabled === true;
+                updateEmailStatus();
+            }
+        } catch (e) {
+            console.warn('loadEmail error:', e);
+        }
+    }
+
+    // =======================================================
+    // СТАТУС EMAIL
+    // =======================================================
+    function updateEmailStatus() {
+        const block = document.getElementById('email-block');
+        const icon = document.getElementById('email-status-icon');
+        const text = document.getElementById('email-status-text');
+        if (!block || !icon || !text) return;
+
+        block.classList.remove('verified', 'unverified');
+
+        if (!currentEmail) {
+            icon.textContent = '○';
+            text.textContent = 'Email не привязан';
+        } else if (emailVerified) {
+            block.classList.add('verified');
+            icon.textContent = '✓';
+            text.textContent = 'Email подтверждён';
+        } else {
+            block.classList.add('unverified');
+            icon.textContent = '○';
+            text.textContent = 'Не подтверждён — нажмите «Подтвердить»';
+        }
+    }
+
+    // =======================================================
+    // ПРЕДПРОСМОТР — аватар
+    // =======================================================
     function updatePreviewAvatar() {
         const el = document.getElementById('preview-chat-avatar');
         if (!el) return;
         const avatarUrl = LocalStore.get('avatar_url', '');
         const iconValue = LocalStore.get('app_icon', 'logo.png');
         if (avatarUrl) {
-            el.style.backgroundImage = `url('${avatarUrl}')`;
+            el.style.backgroundImage = "url('" + avatarUrl + "')";
             el.style.backgroundSize = 'cover';
             el.style.backgroundPosition = 'center';
             el.textContent = '';
-        } else if (iconValue && (iconValue.includes('.') || iconValue.includes('/'))) {
-            el.style.backgroundImage = `url('${iconValue}')`;
+        } else if (iconValue && (iconValue.indexOf('.') !== -1 || iconValue.indexOf('/') !== -1)) {
+            el.style.backgroundImage = "url('" + iconValue + "')";
             el.style.backgroundSize = 'cover';
             el.style.backgroundPosition = 'center';
             el.textContent = '';
@@ -121,16 +195,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function loadSettings() {
+    // =======================================================
+    // ЗАГРУЗКА НАСТРОЕК
+    // =======================================================
+    async function loadSettings() {
         document.getElementById('field-username').value = activeUser;
         renderAvatar();
         renderIconPicker();
-        document.getElementById('field-email').value = LocalStore.get('notify_email', '') || '';
-        updateEmailBadge();
+
+        await loadEmailFromServer();
+
         document.getElementById('field-status').value = LocalStore.get('status', '') || '';
 
         const theme = LocalStore.get('theme', 'light');
-        document.querySelectorAll('.theme-option').forEach(b => {
+        document.querySelectorAll('.theme-option').forEach(function(b) {
             b.classList.toggle('selected', b.getAttribute('data-theme') === theme);
         });
         renderAccentPicker();
@@ -139,15 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('font-size-range').value = fs;
         document.getElementById('font-size-value').textContent = fs + 'px';
 
-        const lang = LocalStore.get('language', 'ru');
-        document.querySelectorAll('.lang-option').forEach(b => {
-            b.classList.toggle('selected', b.getAttribute('data-lang') === lang);
-        });
-
         document.getElementById('toggle-2fa').checked = LocalStore.get('two_factor_enabled', false);
         document.getElementById('toggle-incognito').checked = LocalStore.get('incognito', false);
         document.getElementById('toggle-hide-last-seen').checked = LocalStore.get('hide_last_seen', true);
-        renderBlockedUsers();
 
         document.getElementById('toggle-notifications-enabled').checked = LocalStore.get('notifications_enabled', true);
         document.getElementById('toggle-notifications-sound').checked = LocalStore.get('notifications_sound', true);
@@ -160,8 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('toggle-quiet-hours').checked = LocalStore.get('quiet_hours_enabled', false);
         document.getElementById('quiet-hours-from').value = LocalStore.get('quiet_hours_from', '23:00');
         document.getElementById('quiet-hours-to').value = LocalStore.get('quiet_hours_to', '08:00');
-        document.getElementById('notify-email-input').value = LocalStore.get('notify_email', '') || '';
-        document.getElementById('toggle-notify-email').checked = LocalStore.get('notify_email_enabled', false);
 
         document.getElementById('toggle-sound-message').checked = LocalStore.get('sound_message', true);
         document.getElementById('toggle-sound-sent').checked = LocalStore.get('sound_sent', true);
@@ -192,8 +262,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // =======================================================
+    // АВАТАР
+    // =======================================================
     async function renderAvatar() {
         const preview = document.getElementById('profile-avatar-preview');
+        if (!preview) return;
         const iconValue = LocalStore.get('app_icon', 'logo.png');
 
         let url = '';
@@ -212,12 +286,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!url) url = LocalStore.get('avatar_url', '');
 
         if (url) {
-            preview.style.backgroundImage = `url('${url}')`;
+            preview.style.backgroundImage = "url('" + url + "')";
             preview.style.backgroundSize = 'cover';
             preview.style.backgroundPosition = 'center';
             preview.textContent = '';
-        } else if (iconValue && (iconValue.includes('.') || iconValue.includes('/'))) {
-            preview.style.backgroundImage = `url('${iconValue}')`;
+        } else if (iconValue && (iconValue.indexOf('.') !== -1 || iconValue.indexOf('/') !== -1)) {
+            preview.style.backgroundImage = "url('" + iconValue + "')";
             preview.style.backgroundSize = 'cover';
             preview.style.backgroundPosition = 'center';
             preview.textContent = '';
@@ -229,11 +303,11 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePreviewAvatar();
     }
 
-    document.getElementById('profile-avatar-btn').addEventListener('click', () => {
+    document.getElementById('profile-avatar-btn').addEventListener('click', function() {
         document.getElementById('profile-avatar-input').click();
     });
 
-    document.getElementById('profile-avatar-reset').addEventListener('click', async () => {
+    document.getElementById('profile-avatar-reset').addEventListener('click', async function() {
         await patchProfile({ avatar_url: null });
         LocalStore.set('avatar_url', '');
         renderAvatar();
@@ -277,22 +351,26 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('Аватар обновлён', 'success');
     });
 
+    // =======================================================
+    // ИКОНКИ
+    // =======================================================
     function renderIconPicker() {
         const picker = document.getElementById('app-icon-picker');
+        if (!picker) return;
         picker.innerHTML = '';
         const current = LocalStore.get('app_icon', APP_CONFIG.defaultAppIcon);
-        APP_ICONS.forEach(icon => {
+        APP_ICONS.forEach(function(icon) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'icon-option' + (current === icon.value ? ' selected' : '');
             if (icon.type === 'image') {
-                btn.style.backgroundImage = `url('${icon.value}')`;
+                btn.style.backgroundImage = "url('" + icon.value + "')";
                 btn.textContent = '';
             } else {
                 btn.textContent = icon.value;
             }
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.icon-option').forEach(b => b.classList.remove('selected'));
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.icon-option').forEach(function(b) { b.classList.remove('selected'); });
                 btn.classList.add('selected');
                 LocalStore.set('app_icon', icon.value);
                 renderAvatar();
@@ -302,34 +380,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function updateEmailBadge() {
-        const badge = document.getElementById('email-badge');
-        const verified = LocalStore.get('email_verified', false);
-        const email = LocalStore.get('notify_email', '') || '';
-        if (email && verified) {
-            badge.textContent = "Подтверждён";
-            badge.className = "badge badge-verified";
-        } else if (email) {
-            badge.textContent = "Не подтверждён";
-            badge.className = "badge badge-unverified";
-        } else {
-            badge.textContent = "Не привязан";
-            badge.className = "badge badge-unverified";
-        }
-    }
-
+    // =======================================================
+    // АКЦЕНТ
+    // =======================================================
     function renderAccentPicker() {
         const picker = document.getElementById('accent-picker');
+        if (!picker) return;
         picker.innerHTML = '';
         const current = LocalStore.get('accent_color', APP_CONFIG.defaultAccent);
-        ACCENT_COLORS.forEach(c => {
+        ACCENT_COLORS.forEach(function(c) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'accent-option' + (current === c.value ? ' selected' : '');
             btn.style.background = c.value;
             btn.title = c.name;
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.accent-option').forEach(b => b.classList.remove('selected'));
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.accent-option').forEach(function(b) { b.classList.remove('selected'); });
                 btn.classList.add('selected');
                 LocalStore.set('accent_color', c.value);
                 applyAccent(c.value);
@@ -339,51 +405,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderBlockedUsers() {
-        const list = document.getElementById('blocked-users-list');
-        const blocked = LocalStore.get('blocked_users', []);
-        const arr = Array.isArray(blocked) ? blocked : [];
-        list.innerHTML = '';
-        if (arr.length === 0) {
-            list.innerHTML = '<p class="hint">Список пуст</p>';
-            return;
-        }
-        arr.forEach(u => {
-            const item = document.createElement('div');
-            item.className = 'blocked-user-item';
-            item.innerHTML = `<span>@${u}</span>`;
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'btn btn-mini';
-            btn.textContent = 'Разблокировать';
-            btn.addEventListener('click', () => {
-                const newList = arr.filter(x => x !== u);
-                LocalStore.set('blocked_users', newList);
-                renderBlockedUsers();
-                showToast('Разблокирован', 'success');
-            });
-            item.appendChild(btn);
-            list.appendChild(item);
-        });
-    }
-
-    document.getElementById('block-user-btn').addEventListener('click', () => {
-        const input = document.getElementById('block-username-input');
-        const u = input.value.trim().toLowerCase();
-        if (!u) return;
-        const blocked = LocalStore.get('blocked_users', []);
-        const arr = Array.isArray(blocked) ? blocked : [];
-        if (arr.includes(u)) { showToast('Уже в списке', 'error'); return; }
-        LocalStore.set('blocked_users', [...arr, u]);
-        renderBlockedUsers();
-        input.value = '';
-        showToast('Заблокирован', 'success');
-    });
-
-    document.querySelectorAll('.theme-option').forEach(btn => {
-        btn.addEventListener('click', () => {
+    // =======================================================
+    // ТЕМА
+    // =======================================================
+    document.querySelectorAll('.theme-option').forEach(function(btn) {
+        btn.addEventListener('click', function() {
             const theme = btn.getAttribute('data-theme');
-            document.querySelectorAll('.theme-option').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.theme-option').forEach(function(b) { b.classList.remove('selected'); });
             btn.classList.add('selected');
             LocalStore.set('theme', theme);
             applyTheme(theme);
@@ -391,40 +419,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Колесо мыши по секции "Внешний вид" → переключение темы
-    const themeOrder = ['light', 'dark', 'system'];
-    const appearanceSection = document.querySelector('[data-section="appearance"]');
-    if (appearanceSection) {
-        appearanceSection.addEventListener('wheel', (e) => {
-            if (!appearanceSection.classList.contains('open')) return;
-            e.preventDefault();
-            const current = LocalStore.get('theme', 'light');
-            let idx = themeOrder.indexOf(current);
-            if (idx === -1) idx = 0;
-            idx = e.deltaY > 0 ? (idx + 1) % themeOrder.length : (idx - 1 + themeOrder.length) % themeOrder.length;
-            const newTheme = themeOrder[idx];
-            LocalStore.set('theme', newTheme);
-            document.querySelectorAll('.theme-option').forEach(b => {
-                b.classList.toggle('selected', b.getAttribute('data-theme') === newTheme);
-            });
-            applyTheme(newTheme);
-        }, { passive: false });
-    }
-
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
         if (LocalStore.get('theme', 'light') === 'system') applyTheme('system');
     });
 
-    document.querySelectorAll('.lang-option').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const lang = btn.getAttribute('data-lang');
-            document.querySelectorAll('.lang-option').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
-            LocalStore.set('language', lang);
-            showToast(lang === 'ru' ? 'Язык: Русский' : 'Language: English', 'success');
-        });
-    });
-
+    // =======================================================
+    // РАЗМЕР ШРИФТА
+    // =======================================================
     document.getElementById('font-size-range').addEventListener('input', function() {
         const v = parseInt(this.value);
         document.getElementById('font-size-value').textContent = v + 'px';
@@ -432,6 +433,9 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFontSize(v);
     });
 
+    // =======================================================
+    // ЛОКАЛЬНЫЕ ПЕРЕКЛЮЧАТЕЛИ
+    // =======================================================
     const localToggles = [
         ['toggle-2fa', 'two_factor_enabled'],
         ['toggle-incognito', 'incognito'],
@@ -449,7 +453,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ['toggle-sound-sent', 'sound_sent']
     ];
 
-    localToggles.forEach(([id, key]) => {
+    localToggles.forEach(function(pair) {
+        const id = pair[0], key = pair[1];
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('change', function() {
@@ -457,8 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (id === 'toggle-2fa') {
                 patchProfile({ two_factor_enabled: this.checked });
                 if (this.checked) {
-                    const email = LocalStore.get('notify_email', '');
-                    if (!email) {
+                    if (!currentEmail) {
                         this.checked = false;
                         LocalStore.set('two_factor_enabled', false);
                         patchProfile({ two_factor_enabled: false });
@@ -473,6 +477,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // =======================================================
+    // EMAIL
+    // =======================================================
     document.getElementById('toggle-notify-email').addEventListener('change', function() {
         LocalStore.set('notify_email_enabled', this.checked);
         patchProfile({ notify_email_enabled: this.checked });
@@ -485,36 +492,48 @@ document.addEventListener('DOMContentLoaded', function() {
         LocalStore.set('quiet_hours_to', this.value);
     });
 
-    document.getElementById('notify-email-input').addEventListener('change', function() {
+    document.getElementById('field-email').addEventListener('change', async function() {
         const email = this.value.trim();
-        LocalStore.set('notify_email', email);
-        patchProfile({ notify_email: email });
+        currentEmail = email;
+        await patchProfile({ notify_email: email, email_verified: false });
+        emailVerified = false;
+        updateEmailStatus();
+        showToast('Email сохранён на сервере', 'success');
     });
 
-    document.getElementById('test-message-sound').addEventListener('click', () => {
-        const a = new Audio('sounds/message.mp3');
-        a.play().catch(() => showToast('Файл не найден', 'error'));
+    // =======================================================
+    // ЗВУКИ — БЕЗ ПАПКИ!
+    // =======================================================
+    document.getElementById('test-message-sound').addEventListener('click', function() {
+        const a = new Audio('message.mp3');
+        a.play().catch(function() { showToast('Файл message.mp3 не найден', 'error'); });
     });
-    document.getElementById('test-sent-sound').addEventListener('click', () => {
-        const a = new Audio('sounds/sent.mp3');
-        a.play().catch(() => showToast('Файл не найден', 'error'));
+    document.getElementById('test-sent-sound').addEventListener('click', function() {
+        const a = new Audio('sent.mp3');
+        a.play().catch(function() { showToast('Файл sent.mp3 не найден', 'error'); });
     });
 
-    document.getElementById('save-status-btn').addEventListener('click', async () => {
+    // =======================================================
+    // СТАТУС
+    // =======================================================
+    document.getElementById('save-status-btn').addEventListener('click', async function() {
         const status = document.getElementById('field-status').value.trim();
         LocalStore.set('status', status);
         await patchProfile({ bio: status });
         showToast('Статус сохранён', 'success');
     });
 
-    document.getElementById('change-password-btn').addEventListener('click', async () => {
+    // =======================================================
+    // СМЕНА ПАРОЛЯ
+    // =======================================================
+    document.getElementById('change-password-btn').addEventListener('click', async function() {
         const oldP = document.getElementById('old-password').value;
         const newP = document.getElementById('new-password').value;
         const confP = document.getElementById('confirm-password').value;
 
         if (!oldP || !newP || !confP) { showToast('Заполните все поля', 'error'); return; }
         if (newP.length < 6) { showToast('Пароль минимум 6 символов', 'error'); return; }
-        if (BAN_PASSWORD_LIST.includes(newP) || /^(\d)\1+$/.test(newP)) {
+        if (BAN_PASSWORD_LIST.indexOf(newP) !== -1 || /^(\d)\1+$/.test(newP)) {
             showToast('Пароль слишком простой', 'error'); return;
         }
         if (newP !== confP) { showToast('Пароли не совпадают', 'error'); return; }
@@ -542,19 +561,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('email-verify-btn').addEventListener('click', async () => {
+    // =======================================================
+    // ВЕРИФИКАЦИЯ EMAIL
+    // =======================================================
+    document.getElementById('email-verify-btn').addEventListener('click', async function() {
         const email = document.getElementById('field-email').value.trim();
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) { showToast('Некорректный email', 'error'); return; }
-        LocalStore.set('notify_email', email);
-        await patchProfile({ notify_email: email });
-        currentVerifyType = 'email';
+
+        currentEmail = email;
+        await patchProfile({ notify_email: email, email_verified: false });
+        emailVerified = false;
+        updateEmailStatus();
+
         pendingCode = String(Math.floor(1000 + Math.random() * 9000));
-        localStorage.setItem('leto_pending_code_email', JSON.stringify({
+        sessionStorage.setItem('leto_pending_code_email', JSON.stringify({
             code: pendingCode, target: email, timestamp: Date.now()
         }));
+
         openCodeModal(email);
         setModalStatus('Отправка...', '');
+
         try {
             const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
                 method: 'POST',
@@ -563,7 +590,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     service_id: EMAILJS_CONFIG.serviceId,
                     template_id: EMAILJS_CONFIG.templateId,
                     user_id: EMAILJS_CONFIG.publicKey,
-                    template_params: { to_email: email, name: 'Пользователь Лето', auth_code: pendingCode }
+                    template_params: {
+                        to_email: email,
+                        name: 'Пользователь Лето',
+                        auth_code: pendingCode,
+                        verification_code: pendingCode
+                    }
                 })
             });
             if (res.ok) { setModalStatus('Код отправлен на ' + email, 'success'); startResendTimer(); }
@@ -571,13 +603,16 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { setModalStatus('Сетевая ошибка', 'error'); }
     });
 
+    // =======================================================
+    // МОДАЛКА КОДА
+    // =======================================================
     function openCodeModal(target) {
         const modal = document.getElementById('code-modal');
         document.getElementById('modal-description').textContent = 'Мы отправили код на ' + target;
-        document.querySelectorAll('.code-digit').forEach(d => d.value = '');
+        document.querySelectorAll('.code-digit').forEach(function(d) { d.value = ''; });
         setModalStatus('', '');
         modal.classList.add('active');
-        setTimeout(() => {
+        setTimeout(function() {
             const first = document.querySelector('.code-digit[data-index="0"]');
             if (first) first.focus();
         }, 100);
@@ -586,7 +621,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function closeCodeModal() {
         document.getElementById('code-modal').classList.remove('active');
         stopResendTimer();
-        currentVerifyType = null;
         pendingCode = null;
     }
 
@@ -598,12 +632,13 @@ document.addEventListener('DOMContentLoaded', function() {
         el.className = 'modal-status ' + (type || '');
     }
 
-    document.querySelectorAll('.code-digit').forEach((digit, idx, arr) => {
+    document.querySelectorAll('.code-digit').forEach(function(digit, idx) {
+        const arr = document.querySelectorAll('.code-digit');
         digit.addEventListener('input', function() {
             this.value = this.value.replace(/\D/g, '');
             if (this.value && idx < arr.length - 1) arr[idx + 1].focus();
             if (idx === arr.length - 1 && this.value) {
-                const allFilled = Array.from(arr).every(d => d.value);
+                const allFilled = Array.from(arr).every(function(d) { return d.value; });
                 if (allFilled) setTimeout(verifyCode, 300);
             }
         });
@@ -615,26 +650,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('code-modal-confirm').addEventListener('click', verifyCode);
 
-    function verifyCode() {
+    async function verifyCode() {
         const digits = document.querySelectorAll('.code-digit');
-        const userCode = Array.from(digits).map(d => d.value).join('');
+        const userCode = Array.from(digits).map(function(d) { return d.value; }).join('');
         if (userCode.length < 4) { setModalStatus('Введите все 4 цифры', 'error'); return; }
-        const stored = JSON.parse(localStorage.getItem('leto_pending_code_email') || 'null');
+
+        const stored = JSON.parse(sessionStorage.getItem('leto_pending_code_email') || 'null');
         if (!stored) { setModalStatus('Код истёк', 'error'); return; }
         if (Date.now() - stored.timestamp > 5 * 60 * 1000) {
             setModalStatus('Код истёк', 'error');
-            localStorage.removeItem('leto_pending_code_email');
+            sessionStorage.removeItem('leto_pending_code_email');
             return;
         }
         if (userCode === stored.code) {
-            localStorage.removeItem('leto_pending_code_email');
-            LocalStore.set('email_verified', true);
-            patchProfile({ email_verified: true });
+            sessionStorage.removeItem('leto_pending_code_email');
+            emailVerified = true;
+            await patchProfile({ email_verified: true });
             setModalStatus('Email подтверждён!', 'success');
-            setTimeout(() => { closeCodeModal(); updateEmailBadge(); }, 1200);
+            setTimeout(function() { closeCodeModal(); updateEmailStatus(); }, 1200);
         } else {
             setModalStatus('Неверный код', 'error');
-            digits.forEach(d => d.value = '');
+            digits.forEach(function(d) { d.value = ''; });
             digits[0].focus();
         }
     }
@@ -642,15 +678,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('resend-link').addEventListener('click', function(e) {
         e.preventDefault();
         if (resendSeconds > 0) return;
-        const target = LocalStore.get('notify_email', '');
-        if (target) document.getElementById('email-verify-btn').click();
+        if (currentEmail) document.getElementById('email-verify-btn').click();
     });
 
     function startResendTimer() {
         stopResendTimer();
         resendSeconds = 30;
         updateResendLink();
-        resendTimer = setInterval(() => {
+        resendTimer = setInterval(function() {
             resendSeconds--;
             if (resendSeconds <= 0) stopResendTimer();
             else updateResendLink();
@@ -675,8 +710,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    document.getElementById('clear-chat-cache-btn').addEventListener('click', () => {
-        confirmDialog('Очистить кэш чатов?', 'Все сохранённые сообщения и чаты будут удалены с устройства.', () => {
+    // =======================================================
+    // КЭШ
+    // =======================================================
+    document.getElementById('clear-chat-cache-btn').addEventListener('click', function() {
+        confirmDialog('Очистить кэш чатов?', 'Все сохранённые сообщения и чаты будут удалены с устройства.', function() {
             localStorage.removeItem(CACHE_MESSAGES_KEY);
             localStorage.removeItem(CACHE_CHATS_KEY);
             updateCacheStats();
@@ -684,6 +722,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // =======================================================
+    // БЭКАП
+    // =======================================================
     function generateBackupKey() {
         const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let key = '';
@@ -693,7 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return key;
     }
 
-    document.getElementById('export-backup-btn').addEventListener('click', async () => {
+    document.getElementById('export-backup-btn').addEventListener('click', async function() {
         try {
             const check = await fetch(BACKUP_URL + "?username=eq." + encodeURIComponent(activeUser), {
                 method: "GET", headers: HEADERS_GET
@@ -724,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 await fetch(BACKUP_URL, {
                     method: "POST", headers: HEADERS,
-                    body: JSON.stringify({ username: activeUser, ...payload })
+                    body: JSON.stringify(Object.assign({ username: activeUser }, payload))
                 });
             }
         } catch (e) {
@@ -733,8 +774,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const localSettings = {};
-        Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('leto_') && k !== 'leto_active_user') {
+        Object.keys(localStorage).forEach(function(k) {
+            if (k.indexOf('leto_') === 0 && k !== 'leto_active_user' && k !== 'leto_notify_email') {
                 localSettings[k] = localStorage.getItem(k);
             }
         });
@@ -751,17 +792,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const objectUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         const now = new Date();
-        const pad = n => String(n).padStart(2, '0');
+        const pad = function(n) { return String(n).padStart(2, '0'); };
         a.href = objectUrl;
-        a.download = `leto_backup_${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}.json`;
+        a.download = 'leto_backup_' + now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + '_' + pad(now.getHours()) + '-' + pad(now.getMinutes()) + '.json';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+        setTimeout(function() { window.URL.revokeObjectURL(objectUrl); }, 1000);
         showToast('Резервная копия создана', 'success');
     });
 
-    document.getElementById('import-backup-btn').addEventListener('click', () => {
+    document.getElementById('import-backup-btn').addEventListener('click', function() {
         document.getElementById('import-backup-input').click();
     });
 
@@ -772,20 +813,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const text = await file.text();
             const data = JSON.parse(text);
             if (data.local_settings) {
-                Object.entries(data.local_settings).forEach(([k, v]) => {
-                    localStorage.setItem(k, v);
+                Object.entries(data.local_settings).forEach(function(entry) {
+                    const k = entry[0], v = entry[1];
+                    if (k !== 'leto_notify_email') localStorage.setItem(k, v);
                 });
             }
             showToast('Данные восстановлены', 'success');
-            setTimeout(() => location.reload(), 1200);
+            setTimeout(function() { location.reload(); }, 1200);
         } catch (e) {
             showToast('Файл повреждён', 'error');
         }
         this.value = '';
     });
 
-    document.getElementById('clear-cache-btn').addEventListener('click', () => {
-        confirmDialog('Очистить весь кэш?', 'Все локальные настройки будут удалены. Аккаунт сохранится.', async () => {
+    document.getElementById('clear-cache-btn').addEventListener('click', function() {
+        confirmDialog('Очистить весь кэш?', 'Все локальные настройки будут удалены. Аккаунт сохранится.', async function() {
             const user = localStorage.getItem('leto_active_user');
             localStorage.clear();
             sessionStorage.clear();
@@ -793,26 +835,32 @@ document.addEventListener('DOMContentLoaded', function() {
             if ('caches' in window) {
                 try {
                     const keys = await caches.keys();
-                    await Promise.all(keys.map(k => caches.delete(k)));
+                    await Promise.all(keys.map(function(k) { return caches.delete(k); }));
                 } catch (e) {}
             }
             showToast('Кэш очищен', 'success');
-            setTimeout(() => location.reload(), 1200);
+            setTimeout(function() { location.reload(); }, 1200);
         });
     });
 
-    document.getElementById('download-apk-btn').addEventListener('click', () => {
+    // =======================================================
+    // ПРИЛОЖЕНИЕ
+    // =======================================================
+    document.getElementById('download-apk-btn').addEventListener('click', function() {
         const url = APP_CONFIG.apkDownloadUrl;
         if (window.median && window.median.openUrl) window.median.openUrl(url);
         else window.open(url, '_blank');
     });
 
-    document.getElementById('check-updates-btn').addEventListener('click', () => {
+    document.getElementById('check-updates-btn').addEventListener('click', function() {
         showToast('Версия ' + APP_CONFIG.version + ' — актуальна', 'success');
     });
 
-    document.querySelectorAll('.section-header').forEach(header => {
-        header.addEventListener('click', () => {
+    // =======================================================
+    // СЕКЦИИ
+    // =======================================================
+    document.querySelectorAll('.section-header').forEach(function(header) {
+        header.addEventListener('click', function() {
             const section = header.closest('.settings-section');
             section.classList.toggle('open');
         });
@@ -821,12 +869,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const first = document.querySelector('.settings-section');
     if (first) first.classList.add('open');
 
-    document.getElementById('back-btn').addEventListener('click', () => {
+    document.getElementById('back-btn').addEventListener('click', function() {
         window.location.href = 'messenger.html';
     });
-    document.getElementById('back-to-messenger-btn').addEventListener('click', () => {
+    document.getElementById('back-to-messenger-btn').addEventListener('click', function() {
         window.location.href = 'messenger.html';
     });
 
+    // =======================================================
+    // СТАРТ
+    // =======================================================
     loadSettings();
 });
