@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="logo.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Настройки — Лето</title>
     <link rel="stylesheet" href="settings.css">
@@ -37,7 +38,7 @@
                 <div class="avatar-row">
                     <div id="profile-avatar-preview" class="avatar-preview">☀️</div>
                     <div class="avatar-controls">
-                        <label class="field-label">Аватар</label>
+                        <label class="field-label">Аватар пользователя</label>
                         <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;">
                         <button type="button" id="profile-avatar-btn" class="btn btn-secondary">Загрузить фото</button>
                         <button type="button" id="profile-avatar-reset" class="btn btn-mini">Сбросить</button>
@@ -45,21 +46,25 @@
                 </div>
 
                 <div class="field">
-                    <label class="field-label">Иконка в шапке</label>
+                    <label class="field-label">Иконка приложения (Ярлык)</label>
                     <div id="app-icon-picker" class="icon-picker"></div>
                 </div>
 
                 <div class="field">
                     <label class="field-label">Имя пользователя</label>
-                    <input type="text" id="field-username" class="field-input" disabled>
+                    <div class="email-block-row" style="background: var(--bg-input); border: 1.5px solid var(--border-color); border-radius: var(--radius-sm); padding: 4px 8px;">
+                        <input type="text" id="field-username" class="field-input" disabled style="border: none; background: transparent; padding: 8px;">
+                        <button id="change-username-btn" class="btn btn-secondary" type="button">Изменить</button>
+                    </div>
                 </div>
 
                 <div class="field">
                     <label class="field-label">Email</label>
                     <div class="email-block" id="email-block">
                         <div class="email-block-row">
-                            <input type="email" id="field-email" class="field-input" placeholder="user@example.com">
-                            <button id="email-verify-btn" class="btn btn-primary" type="button">Подтвердить</button>
+                            <input type="email" id="field-email" class="field-input" placeholder="user@example.com" readonly>
+                            <button id="email-edit-btn" class="btn btn-secondary" type="button">Добавить</button>
+                            <button id="email-verify-btn" class="btn btn-primary" type="button" style="display: none;">Подтвердить</button>
                         </div>
                         <div class="email-status-bar">
                             <span class="email-status-icon" id="email-status-icon">○</span>
@@ -72,6 +77,23 @@
                     <label class="field-label">Статус</label>
                     <input type="text" id="field-status" class="field-input" maxlength="80" placeholder="Немного о себе...">
                     <button id="save-status-btn" class="btn btn-secondary" type="button">Сохранить</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- МОИ КОНТАКТЫ (АЛИАСЫ) -->
+        <section class="settings-section" data-section="contacts">
+            <button class="section-header" type="button">
+                <span class="section-icon">👥</span>
+                <span class="section-title">Мои контакты</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <p class="hint" style="margin-bottom: 12px;">Здесь вы можете изменить имя контакта (например, "Светлана" на "Бабушка"). Это увидете только вы.</p>
+                <div id="contacts-alias-list" class="contacts-alias-list">
+                    <div class="status-message" style="padding: 10px;">Загрузка контактов...</div>
                 </div>
             </div>
         </section>
@@ -448,6 +470,38 @@
         <div class="modal-actions">
             <button id="code-modal-cancel" class="btn btn-secondary" type="button">Отмена</button>
             <button id="code-modal-confirm" class="btn btn-primary" type="button">Подтвердить</button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ ПАРОЛЯ ДЛЯ СМЕНЫ EMAIL -->
+<div id="password-confirm-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 class="modal-title">Подтверждение пароля</h3>
+        <p class="modal-text">Введите пароль от аккаунта, чтобы изменить email</p>
+        <input type="password" id="confirm-account-password" class="field-input" placeholder="Пароль" autocomplete="current-password">
+        <div id="password-confirm-status" class="modal-status"></div>
+        <div class="modal-actions">
+            <button id="password-confirm-cancel" class="btn btn-secondary" type="button">Отмена</button>
+            <button id="password-confirm-ok" class="btn btn-primary" type="button">Подтвердить</button>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛКА СМЕНЫ НИКА -->
+<div id="username-change-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h3 class="modal-title">Смена никнейма</h3>
+        <p class="modal-text">Введите пароль для подтверждения и новый никнейм</p>
+        
+        <input type="password" id="username-change-password" class="field-input" placeholder="Пароль" autocomplete="current-password">
+        <input type="text" id="username-change-new" class="field-input" placeholder="Новый никнейм (латиницей)" autocomplete="off">
+        
+        <div id="username-change-status" class="modal-status"></div>
+        
+        <div class="modal-actions">
+            <button id="username-change-cancel" class="btn btn-secondary" type="button">Отмена</button>
+            <button id="username-change-ok" class="btn btn-primary" type="button">Изменить</button>
         </div>
     </div>
 </div>

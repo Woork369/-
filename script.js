@@ -198,10 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const twoFAEnabled = await is2FAEnabled(username);
             if (twoFAEnabled) {
-                const email = await getUserEmail(username);
-                if (!email) {
+                const profRes = await fetch(`${PROFILES_URL}?username=eq.${username}`, { method: "GET", headers: HEADERS_GET });
+                const prof = await profRes.json();
+                const email = prof[0]?.notify_email;
+                const verified = prof[0]?.email_verified;
+
+                if (!email || verified !== true) {
                     authMessage.className = "message-box error";
-                    authMessage.textContent = "2FA включена, но почта не привязана.";
+                    authMessage.textContent = "2FA включена, но почта не подтверждена. Войдите другим способом или отключите 2FA.";
                     return;
                 }
                 authMessage.className = "message-box success";
@@ -228,17 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (rows && rows[0]) return rows[0].two_factor_enabled === true;
         } catch (e) {}
         return false;
-    }
-
-    async function getUserEmail(username) {
-        try {
-            const res = await fetch(`${PROFILES_URL}?username=eq.${username}`, {
-                method: "GET", headers: HEADERS_GET
-            });
-            const rows = await res.json();
-            if (rows && rows[0]) return rows[0].notify_email || '';
-        } catch (e) {}
-        return '';
     }
 
     // =======================================================
@@ -270,7 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =======================================================
     // СПОСОБ 1 — ВХОД ПО EMAIL
-    // (после него НЕ спрашиваем 2FA — канал тот же)
     // =======================================================
     const emailNickname = document.getElementById('email-nickname');
     const emailSendBtn = document.getElementById('email-send-btn');
@@ -302,11 +294,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const email = await getUserEmail(u);
-            if (!email) {
-                setEmailStatus('К этому аккаунту не привязана почта. Привяжите её в настройках.', 'error');
+            const profRes = await fetch(`${PROFILES_URL}?username=eq.${u}`, { method: "GET", headers: HEADERS_GET });
+            const prof = await profRes.json();
+            if (!prof || !prof[0] || !prof[0].notify_email) {
+                setEmailStatus('К этому аккаунту не привязана почта.', 'error');
                 return;
             }
+            if (prof[0].email_verified !== true) {
+                setEmailStatus('Email не подтверждён. Войдите в настройки с доверенного устройства, чтобы подтвердить его.', 'error');
+                return;
+            }
+            const email = prof[0].notify_email;
 
             savedEmailUsername = u;
             const code = String(Math.floor(1000 + Math.random() * 9000));
@@ -417,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =======================================================
     // СПОСОБ 2 — ВХОД ПО ДРУГОМУ УСТРОЙСТВУ
-    // (после него — 2FA, если включена)
     // =======================================================
     const deviceNickname = document.getElementById('device-nickname');
     const deviceSendBtn = document.getElementById('device-send-btn');
@@ -473,14 +470,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Проверяем 2FA перед входом
                 const twoFAEnabled = await is2FAEnabled(u);
                 if (twoFAEnabled) {
-                    const email = await getUserEmail(u);
-                    if (email) {
+                    const profRes = await fetch(`${PROFILES_URL}?username=eq.${u}`, { method: "GET", headers: HEADERS_GET });
+                    const prof = await profRes.json();
+                    const email = prof[0]?.notify_email;
+                    const verified = prof[0]?.email_verified;
+
+                    if (!email || verified !== true) {
+                        // Защита от блокировки: если почта сломана, 2FA отключается
+                        await fetch(`${PROFILES_URL}?username=eq.${u}`, {
+                            method: "PATCH", headers: HEADERS_POST,
+                            body: JSON.stringify({ two_factor_enabled: false })
+                        });
                         localStorage.setItem('leto_active_user', u);
-                        sessionStorage.removeItem('leto_2fa_passed');
-                        setDeviceCodeStatus('Подтверждено! Требуется 2FA...', 'success');
-                        setTimeout(() => { window.location.href = '2fa.html'; }, 900);
+                        sessionStorage.setItem('leto_2fa_passed', 'true');
+                        setDeviceCodeStatus('Подтверждено! 2FA отключена из-за неподтвержденной почты.', 'success');
+                        setTimeout(() => { window.location.href = 'messenger.html'; }, 1500);
                         return;
                     }
+                    localStorage.setItem('leto_active_user', u);
+                    sessionStorage.removeItem('leto_2fa_passed');
+                    setDeviceCodeStatus('Подтверждено! Требуется 2FA...', 'success');
+                    setTimeout(() => { window.location.href = '2fa.html'; }, 900);
+                    return;
                 }
                 localStorage.setItem('leto_active_user', u);
                 sessionStorage.setItem('leto_2fa_passed', 'true');
@@ -496,7 +507,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =======================================================
     // СПОСОБ 3 — ВХОД ПО БЭКАПУ
-    // (после него — 2FA, если включена)
     // =======================================================
     const backupNickname = document.getElementById('backup-nickname');
     const backupFileInput = document.getElementById('backup-file-input');
@@ -569,14 +579,28 @@ document.addEventListener('DOMContentLoaded', () => {
             // Проверяем 2FA перед входом
             const twoFAEnabled = await is2FAEnabled(u);
             if (twoFAEnabled) {
-                const email = await getUserEmail(u);
-                if (email) {
+                const profRes = await fetch(`${PROFILES_URL}?username=eq.${u}`, { method: "GET", headers: HEADERS_GET });
+                const prof = await profRes.json();
+                const email = prof[0]?.notify_email;
+                const verified = prof[0]?.email_verified;
+
+                if (!email || verified !== true) {
+                    // Защита от блокировки
+                    await fetch(`${PROFILES_URL}?username=eq.${u}`, {
+                        method: "PATCH", headers: HEADERS_POST,
+                        body: JSON.stringify({ two_factor_enabled: false })
+                    });
                     localStorage.setItem('leto_active_user', u);
-                    sessionStorage.removeItem('leto_2fa_passed');
-                    setBackupStatus('Бэкап подтверждён! Требуется 2FA...', 'success');
-                    setTimeout(() => { window.location.href = '2fa.html'; }, 900);
+                    sessionStorage.setItem('leto_2fa_passed', 'true');
+                    setBackupStatus('Бэкап подтверждён! 2FA отключена из-за неподтвержденной почты.', 'success');
+                    setTimeout(() => { window.location.href = 'messenger.html'; }, 1500);
                     return;
                 }
+                localStorage.setItem('leto_active_user', u);
+                sessionStorage.removeItem('leto_2fa_passed');
+                setBackupStatus('Бэкап подтверждён! Требуется 2FA...', 'success');
+                setTimeout(() => { window.location.href = '2fa.html'; }, 900);
+                return;
             }
             localStorage.setItem('leto_active_user', u);
             sessionStorage.setItem('leto_2fa_passed', 'true');

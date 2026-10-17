@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
         "Authorization": "Bearer " + MY_SERVER_KEY
     };
 
-    const DEFAULT_AVATAR = 'logo.png';
     const CACHE_MESSAGES_KEY = 'leto_cache_messages';
     const CACHE_CHATS_KEY = 'leto_cache_chats';
     const AVATAR_CACHE_KEY = 'leto_avatar_cache';
@@ -51,6 +50,57 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const currentActiveUser = localStorage.getItem('leto_active_user');
     if (!currentActiveUser) { window.location.href = "index.html"; return; }
+
+    // =======================================================
+    // === ИКОНКА ПРИЛОЖЕНИЯ ===
+    // =======================================================
+    function applyAppIcon(iconPath) {
+        let linkIcon = document.getElementById('app-favicon');
+        if (!linkIcon) {
+            linkIcon = document.querySelector("link[rel~='icon']");
+            if (!linkIcon) {
+                linkIcon = document.createElement('link');
+                linkIcon.rel = 'icon';
+                document.head.appendChild(linkIcon);
+            }
+            linkIcon.id = 'app-favicon';
+        }
+        linkIcon.href = iconPath;
+
+        const manifestLink = document.getElementById('app-manifest') || document.querySelector("link[rel='manifest']");
+        if (manifestLink) {
+            fetch('manifest.json')
+                .then(res => res.json())
+                .then(manifest => {
+                    manifest.icons = [
+                        { "src": iconPath, "sizes": "192x192", "type": "image/png" },
+                        { "src": iconPath, "sizes": "512x512", "type": "image/png" }
+                    ];
+                    const stringManifest = JSON.stringify(manifest);
+                    const blob = new Blob([stringManifest], { type: 'application/json' });
+                    const manifestURL = URL.createObjectURL(blob);
+                    manifestLink.setAttribute('href', manifestURL);
+                })
+                .catch(e => console.warn('Не удалось обновить манифест:', e));
+        }
+
+        if (window.median && typeof window.median.setAppIcon === 'function') {
+            try { window.median.setAppIcon(iconPath); } catch(e) {}
+        }
+    }
+
+    const savedIcon = LocalStore.get('app_icon', 'logo.png');
+    applyAppIcon(savedIcon);
+
+    // Получение кастомного имени (алиаса)
+    function getContactAlias(username) {
+        try {
+            const aliases = JSON.parse(localStorage.getItem('leto_contact_aliases') || '{}');
+            return aliases[username] || username;
+        } catch (e) {
+            return username;
+        }
+    }
 
     DeviceApproval.startPollingAsTrustedDevice(currentActiveUser, (payload) => {
         showDeviceApprovalScreen(payload);
@@ -155,48 +205,68 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function setAvatarOnElement(el, url) {
+    // Обновлённая функция: если нет URL, рисует первую букву
+    function setAvatarOnElement(el, url, fallbackName) {
         if (!el) return;
         if (url) {
             el.textContent = '';
             el.style.background = `url('${url}') center/cover no-repeat`;
+            el.style.color = '';
+            el.style.fontWeight = '';
+            el.style.display = '';
+            el.style.alignItems = '';
+            el.style.justifyContent = '';
         } else {
-            el.textContent = '';
-            el.style.background = `url('${DEFAULT_AVATAR}') center/cover no-repeat`;
+            el.textContent = fallbackName ? fallbackName.charAt(0).toUpperCase() : '?';
+            el.style.background = 'linear-gradient(135deg, #ffd66b, #ffb03a)';
+            el.style.color = '#fff';
+            el.style.fontWeight = 'bold';
+            el.style.display = 'flex';
+            el.style.alignItems = 'center';
+            el.style.justifyContent = 'center';
         }
     }
 
     function applyAvatarFast(el, username) {
         if (!el) return;
-        if (!username) { setAvatarOnElement(el, ''); return; }
+        if (!username) { setAvatarOnElement(el, '', ''); return; }
 
         if (username === currentActiveUser) {
             const localUrl = LocalStore.get('avatar_url', '');
-            if (localUrl) { setAvatarOnElement(el, localUrl); return; }
+            if (localUrl) { setAvatarOnElement(el, localUrl, username); return; }
         }
         const cached = avatarCache[username];
         if (cached !== undefined && cached !== '') {
-            setAvatarOnElement(el, cached);
+            setAvatarOnElement(el, cached, username);
         } else {
-            setAvatarOnElement(el, '');
+            setAvatarOnElement(el, '', username);
             fetchAvatarUrl(username).then(url => {
-                if (url) setAvatarOnElement(el, url);
+                if (url) setAvatarOnElement(el, url, username);
             });
         }
     }
 
+    // Принудительная загрузка аватара при старте
     (async function preloadMyAvatar() {
         delete avatarCache[currentActiveUser];
         const localUrl = LocalStore.get('avatar_url', '');
-        if (localUrl) avatarCache[currentActiveUser] = localUrl;
-        const fresh = await fetchAvatarUrl(currentActiveUser);
-        if (fresh) {
-            LocalStore.set('avatar_url', fresh);
-            avatarCache[currentActiveUser] = fresh;
-        } else if (localUrl) {
+        if (localUrl) {
             avatarCache[currentActiveUser] = localUrl;
+            applyUserAppearance();
         }
-        applyUserAppearance();
+        try {
+            const res = await fetch(
+                SUPABASE_PROFILES_URL + "?username=eq." + encodeURIComponent(currentActiveUser) + "&select=avatar_url",
+                { method: "GET", headers: HEADERS_GET }
+            );
+            const rows = await res.json();
+            if (rows && rows[0] && rows[0].avatar_url) {
+                LocalStore.set('avatar_url', rows[0].avatar_url);
+                avatarCache[currentActiveUser] = rows[0].avatar_url;
+                saveAvatarCache();
+                applyUserAppearance();
+            }
+        } catch (e) {}
     })();
 
     // =======================================================
@@ -218,17 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const stored = LocalStore.get('avatar_url', '');
             const cached = avatarCache[currentActiveUser];
             const url = stored || (cached !== undefined && cached ? cached : '');
-            if (url) {
-                setAvatarOnElement(avatarEl, url);
-            } else {
-                const icon = LocalStore.get('app_icon', '☀️');
-                avatarEl.textContent = icon;
-                avatarEl.style.background = 'linear-gradient(135deg, #ffd66b, #ffb03a)';
-                avatarEl.style.display = 'flex';
-                avatarEl.style.alignItems = 'center';
-                avatarEl.style.justifyContent = 'center';
-                avatarEl.style.fontSize = '22px';
-            }
+            setAvatarOnElement(avatarEl, url, currentActiveUser);
         }
     }
 
@@ -315,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const res = await fetch(
                 SUPABASE_PROFILES_URL + "?username=eq." + encodeURIComponent(recipient) +
-                "&select=notify_email,notify_email_enabled",
+                "&select=notify_email,notify_email_enabled,email_verified",
                 { method: "GET", headers: HEADERS_GET }
             );
             const rows = await res.json();
@@ -324,6 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!profile) return;
         if (profile.notify_email_enabled !== true) return;
+        if (profile.email_verified !== true) return;
         if (!profile.notify_email) return;
 
         try {
@@ -508,6 +569,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!container) return;
         const toast = document.createElement('div');
         toast.className = 'leto-toast';
+        
         toast.innerHTML = `<div class="leto-toast-icon">💬</div><div class="leto-toast-text">${text}</div>`;
         toast.addEventListener('click', () => {
             if (chatName) {
@@ -606,6 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 sorted.forEach(([name]) => { fetchAvatarUrl(name); });
                 renderData = sorted.map(([name, info]) => ({
                     name: name,
+                    displayName: getContactAlias(name),
                     subtitle: (info.lastMsg.type === 'text') ? info.lastMsg.text : '📎 Вложение',
                     avatar: '',
                     creator: '',
@@ -616,6 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 renderData = data.map(room => ({
                     name: room.name,
+                    displayName: room.name,
                     subtitle: room.description || "Нет описания",
                     avatar: room.avatar_url || '',
                     creator: room.creator,
@@ -641,11 +705,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         renderData.forEach(item => {
-            renderChatCard(item.name, item.subtitle, item.avatar, item.creator, item.unread, item.verified);
+            renderChatCard(item.name, item.displayName, item.subtitle, item.avatar, item.creator, item.unread, item.verified);
         });
     }
 
-    function renderChatCard(name, subtitle, avatarUrl, creatorName, unreadCount, isVerifiedRoom) {
+    function renderChatCard(name, displayName, subtitle, avatarUrl, creatorName, unreadCount, isVerifiedRoom) {
         const card = document.createElement('div');
         card.className = 'chat-card' + (activeChatTarget === name ? ' active' : '');
         const isVerUser = isVerifiedUser(name);
@@ -655,7 +719,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.innerHTML = `
             <div class="user-avatar small chat-card-avatar"></div>
             <div class="chat-card-body">
-                <span class="user-display-name">${name}${isVerUser ? svgVerified : verRoom}</span>
+                <span class="user-display-name">${displayName}${isVerUser ? svgVerified : verRoom}</span>
                 <span class="chat-preview">${subtitle || ''}</span>
             </div>
             ${unreadBadge}
@@ -665,11 +729,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentChatType === 'contact') {
             applyAvatarFast(avatarEl, name);
         } else {
-            if (avatarUrl) {
-                setAvatarOnElement(avatarEl, avatarUrl);
-            } else {
-                setAvatarOnElement(avatarEl, '');
-            }
+            setAvatarOnElement(avatarEl, avatarUrl, name);
         }
 
         card.addEventListener('click', function() {
@@ -732,8 +792,8 @@ document.addEventListener('DOMContentLoaded', function() {
             messagesScreen.style.display = 'flex';
             messagesScreen.innerHTML = '<div class="status-message">🔒 Это закрытая группа. Вы не участник.</div>';
         }
-        const isVerUser = isVerifiedUser(chatName);
-        if (targetChatNameEl) targetChatNameEl.innerHTML = chatName + (isVerUser ? svgVerified : '');
+        const displayName = getContactAlias(chatName);
+        if (targetChatNameEl) targetChatNameEl.innerHTML = displayName;
         if (appContainer) appContainer.classList.add('show-chat');
 
         if (roomSettingsBtn) roomSettingsBtn.style.display = 'none';
@@ -762,8 +822,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (inputZone) inputZone.style.display = 'block';
         if (messagesScreen) messagesScreen.style.display = 'flex';
 
+        const displayName = getContactAlias(chatName);
         const isVerUser = isVerifiedUser(chatName);
-        if (targetChatNameEl) targetChatNameEl.innerHTML = chatName + (isVerUser ? svgVerified : '');
+        
+        if (targetChatNameEl) targetChatNameEl.innerHTML = displayName + (isVerUser ? svgVerified : '');
         if (appContainer) appContainer.classList.add('show-chat');
 
         const isOwner = (currentChatType !== 'contact' && activeChatCreator === currentActiveUser);
@@ -819,17 +881,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const verRoom = room.verified ? svgVerified : '';
             if (isChannel) {
-                targetChatNameEl.innerHTML = `${chatName}${verRoom}`;
+                targetChatNameEl.innerHTML = `${displayName}${verRoom}`;
             } else {
-                targetChatNameEl.innerHTML = `${chatName}${verRoom} <span class="chat-header-count">· ${members.length} участников</span>`;
+                targetChatNameEl.innerHTML = `${displayName}${verRoom} <span class="chat-header-count">· ${members.length} участников</span>`;
             }
 
             if (headerAvatarEl) {
-                if (room.avatar_url) {
-                    setAvatarOnElement(headerAvatarEl, room.avatar_url);
-                } else {
-                    setAvatarOnElement(headerAvatarEl, '');
-                }
+                setAvatarOnElement(headerAvatarEl, room.avatar_url, chatName);
             }
 
             let canWrite = false;
@@ -909,7 +967,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 unreadByChat[chatName] = 0;
                 document.querySelectorAll('.chat-card').forEach(c => {
                     const nameEl = c.querySelector('.user-display-name');
-                    if (nameEl && nameEl.textContent.trim().startsWith(chatName)) {
+                    if (nameEl && nameEl.textContent.trim().startsWith(getContactAlias(chatName))) {
                         const b = c.querySelector('.unread-badge');
                         if (b) b.remove();
                     }
@@ -964,8 +1022,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const chatOpen = !document.hidden && activeChatTarget === lm.receiver;
                     if (!chatOpen) {
                         const label = currentChatType === 'contact'
-                            ? `Новое сообщение от @${lm.sender}`
-                            : `Новое сообщение в «${activeChatTarget}»`;
+                            ? `Новое сообщение от @${getContactAlias(lm.sender)}`
+                            : `Новое сообщение в «${getContactAlias(activeChatTarget)}»`;
                         showToast(label, lm.sender);
                     }
                     handleIncomingNotification(lm);
@@ -1023,8 +1081,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let senderTag = '';
             if (currentChatType !== 'contact' && !isMy) {
+                const senderDisplay = getContactAlias(msg.sender);
                 const senderVer = isVerifiedUser(msg.sender) ? svgVerified : '';
-                senderTag = `<strong class="msg-sender-tag">${msg.sender}${senderVer}:</strong>`;
+                senderTag = `<strong class="msg-sender-tag">${senderDisplay}${senderVer}:</strong>`;
             }
 
             let timeStr = formatMessageTime(msg.created_at);
@@ -1073,7 +1132,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (type === 'channels' && LocalStore.get('notify_channels', true) === false) return;
 
         const title = 'Лето Мессенджер';
-        const body = `@${msg.sender}: ${msg.type === 'text' ? msg.text : '📎 Вложение'}`;
+        const displaySender = getContactAlias(msg.sender);
+        const body = `${displaySender}: ${msg.type === 'text' ? msg.text : '📎 Вложение'}`;
         MedianBridge.push(title, body, 'leto-' + msg.receiver);
 
         if (LocalStore.get('notifications_sound', true) !== false) playSound('message');
@@ -1410,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     settingsAvatarPreview.style.backgroundPosition = 'center';
                 }
                 const headerAvatarEl = document.querySelector('.chat-header-avatar');
-                if (headerAvatarEl) setAvatarOnElement(headerAvatarEl, newUrl);
+                if (headerAvatarEl) setAvatarOnElement(headerAvatarEl, newUrl, activeChatTarget);
                 loadChats();
             })
             .catch(() => {
@@ -1452,7 +1512,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (currentChatType === 'channel') {
                             membersInfo.innerHTML = "";
                         } else {
-                            membersInfo.innerHTML = `<strong>Участников:</strong> ${m.length}<br>${m.join(', ')}`;
+                            const displayMembers = m.map(u => getContactAlias(u));
+                            membersInfo.innerHTML = `<strong>Участников:</strong> ${m.length}<br>${displayMembers.join(', ')}`;
                         }
                     }
                 }
@@ -1616,9 +1677,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const key = 'unread:' + last.sender + ':' + cnt;
                 if (!chatOpen && key !== lastToastKey) {
                     lastToastKey = key;
+                    const senderName = getContactAlias(last.sender);
                     showToast(cnt > 1
-                        ? `${cnt} новых сообщений от @${last.sender}`
-                        : `Новое сообщение от @${last.sender}`, last.sender);
+                        ? `${cnt} новых сообщений от ${senderName}`
+                        : `Новое сообщение от ${senderName}`, last.sender);
                 }
                 if (LocalStore.get('notifications_badge', true) !== false) {
                     MedianBridge.setBadge(arr.length);
