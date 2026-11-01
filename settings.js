@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // ДИНАМИЧЕСКАЯ ИКОНКА ПРИЛОЖЕНИЯ (PWA)
     // =======================================================
     function updateAppIcon(iconPath) {
-        // 1. Обновляем favicon в браузере
         let linkIcon = document.querySelector("link[rel~='icon']");
         if (!linkIcon) {
             linkIcon = document.createElement('link');
@@ -42,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         linkIcon.href = iconPath;
 
-        // 2. Обновляем PWA манифест (для установки ярлыка)
         const manifestLink = document.querySelector("link[rel='manifest']");
         if (manifestLink) {
             fetch('manifest.json')
@@ -60,7 +58,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(e => console.warn('Не удалось обновить манифест:', e));
         }
 
-        // 3. Если мы в приложении (Median / WebView)
         if (window.median) {
             if (typeof window.median.setAppIcon === 'function') {
                 try { window.median.setAppIcon(iconPath); } catch(e) {}
@@ -133,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
     applyAccent(LocalStore.get('accent_color', '#007aff'));
     applyFontSize(LocalStore.get('font_size', 15));
 
-    // Инициализируем иконку приложения при загрузке
     const savedIcon = LocalStore.get('app_icon', APP_CONFIG.defaultAppIcon);
     updateAppIcon(savedIcon);
 
@@ -381,6 +377,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         updatePreviewAvatar();
         updateCacheStats();
+
+        // --- Анимации ---
+        const sendAnim = LocalStore.get('send_anim', 'default');
+        document.querySelectorAll('#send-anim-picker .theme-option').forEach(function(btn) {
+            btn.classList.toggle('selected', btn.getAttribute('data-val') === sendAnim);
+        });
+
+        const msgAnim = LocalStore.get('msg_anim', 'default');
+        document.querySelectorAll('#msg-anim-picker .theme-option').forEach(function(btn) {
+            btn.classList.toggle('selected', btn.getAttribute('data-val') === msgAnim);
+        });
     }
 
     function updateCacheStats() {
@@ -439,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('profile-avatar-reset').addEventListener('click', async function() {
         await patchProfile({ avatar_url: null });
         LocalStore.set('avatar_url', '');
-        localStorage.removeItem('leto_avatar_cache'); // Сбрасываем кэш мессенджера
+        localStorage.removeItem('leto_avatar_cache');
         renderAvatar();
         showToast('Аватар сброшен', 'success');
     });
@@ -478,7 +485,6 @@ document.addEventListener('DOMContentLoaded', function() {
         await patchProfile({ avatar_url: publicUrl });
         LocalStore.set('avatar_url', publicUrl);
         
-        // ВАЖНО: Сбрасываем кэш аватарок, чтобы мессенджер скачал новый
         localStorage.removeItem('leto_avatar_cache'); 
         
         renderAvatar();
@@ -1202,13 +1208,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // ПРИЛОЖЕНИЕ
     // =======================================================
     document.getElementById('download-apk-btn').addEventListener('click', function() {
-        const url = APP_CONFIG.apkDownloadUrl;
+        const url = APP_STORE_CONFIG.apkDownloadUrl || APP_CONFIG.apkDownloadUrl;
         if (window.median && window.median.openUrl) window.median.openUrl(url);
         else window.open(url, '_blank');
     });
 
-    document.getElementById('check-updates-btn').addEventListener('click', function() {
-        showToast('Версия ' + APP_CONFIG.version + ' — актуальна', 'success');
+    document.getElementById('check-updates-btn').addEventListener('click', async function() {
+        const btn = this;
+        btn.textContent = 'Проверка...';
+        btn.disabled = true;
+
+        try {
+            let userVersion = '0.0.0';
+            const res = await fetch(PROFILES_URL + "?username=eq." + encodeURIComponent(activeUser) + "&select=app_version", { headers: HEADERS_GET });
+            const rows = await res.json();
+            
+            if (rows && rows[0] && rows[0].app_version) {
+                userVersion = rows[0].app_version;
+            } else {
+                userVersion = localStorage.getItem('leto_app_version') || '0.0.0';
+            }
+
+            if (userVersion === APP_STORE_CONFIG.latestVersion) {
+                showToast('У вас самая свежая версия (' + userVersion + ')', 'success');
+                btn.textContent = 'Проверить обновления';
+                btn.disabled = false;
+            } else if (userVersion === '0.0.0') {
+                showToast('Версия неизвестна. Скачайте приложение из магазина.', 'error');
+                setTimeout(() => { window.location.href = 'store.html'; }, 2000);
+            } else {
+                showToast('Доступна новая версия: ' + APP_STORE_CONFIG.latestVersion, 'success');
+                setTimeout(() => { window.location.href = 'store.html'; }, 1500);
+            }
+        } catch (e) {
+            const localVersion = localStorage.getItem('leto_app_version') || '0.0.0';
+            if (localVersion === APP_STORE_CONFIG.latestVersion) {
+                showToast('У вас самая свежая версия (' + localVersion + ')', 'success');
+            } else {
+                showToast('Доступна новая версия. Переход в магазин...', 'error');
+                setTimeout(() => { window.location.href = 'store.html'; }, 1500);
+            }
+            btn.textContent = 'Проверить обновления';
+            btn.disabled = false;
+        }
     });
 
     // =======================================================
@@ -1230,6 +1272,71 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('back-to-messenger-btn').addEventListener('click', function() {
         window.location.href = 'messenger.html';
     });
+
+    // =======================================================
+    // АНИМАЦИИ - ОБРАБОТЧИКИ
+    // =======================================================
+    document.querySelectorAll('#send-anim-picker .theme-option').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#send-anim-picker .theme-option').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            const val = this.getAttribute('data-val');
+            LocalStore.set('send_anim', val);
+            showToast('Анимация отправки: ' + this.textContent, 'success');
+            
+            // Тест анимации кнопки
+            const previewBtn = document.getElementById('anim-preview-send-btn');
+            previewBtn.classList.remove('anim-btn-spin', 'anim-btn-fly');
+            void previewBtn.offsetWidth; // Сброс анимации
+            if (val !== 'default') previewBtn.classList.add('anim-btn-' + val);
+        });
+    });
+
+    document.querySelectorAll('#msg-anim-picker .theme-option').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#msg-anim-picker .theme-option').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            const val = this.getAttribute('data-val');
+            LocalStore.set('msg_anim', val);
+            showToast('Анимация сообщений: ' + this.textContent, 'success');
+
+            // Тест анимации сообщения
+            playAnimPreviewMessage(val);
+        });
+    });
+
+    // Обработчик тестовой отправки в предпросмотре
+    document.getElementById('anim-preview-send-btn').addEventListener('click', function() {
+        const sendVal = LocalStore.get('send_anim', 'default');
+        this.classList.remove('anim-btn-spin', 'anim-btn-fly');
+        void this.offsetWidth;
+        if (sendVal !== 'default') this.classList.add('anim-btn-' + sendVal);
+
+        const msgVal = LocalStore.get('msg_anim', 'default');
+        playAnimPreviewMessage(msgVal);
+    });
+
+    function playAnimPreviewMessage(animType) {
+        const body = document.getElementById('anim-preview-body');
+        // Очищаем, оставляем только последнее
+        if (body.children.length > 1) {
+            body.removeChild(body.firstChild);
+        }
+
+        const msgRow = document.createElement('div');
+        msgRow.className = 'preview-msg my';
+        
+        if (animType !== 'default') {
+            msgRow.classList.add('anim-msg-' + animType);
+        }
+
+        msgRow.innerHTML = `
+            <div class="preview-bubble">Тестовое сообщение ✈️<span class="preview-bubble-time">сейчас</span></div>
+        `;
+        
+        body.appendChild(msgRow);
+        body.scrollTop = body.scrollHeight;
+    }
 
     // =======================================================
     // СТАРТ

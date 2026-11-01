@@ -4,6 +4,9 @@
 
 const SUPABASE_CONFIG = {
     url: "https://rvmtghettsndnnhdeasx.supabase.co",
+    // ВНИМАНИЕ: publishable/anon ключ публичен по дизайну Supabase.
+    // Без включённого RLS и Supabase Auth он даёт полный доступ к данным.
+    // Не используйте service_role ключ на клиенте никогда.
     key: "sb_publishable_GQxHLUlRpEVdmFeq_UKcqA_PPdYfm_Q",
     tables: {
         user: "user",
@@ -29,8 +32,8 @@ const HEADERS_GET = {
 const EMAILJS_CONFIG = {
     publicKey: "S1NP5cFz0W79QnOiK",
     serviceId: "service_v9f6zor",
-    templateId: "template_bcb0yly",       // шаблон для КОДОВ
-    templateNotifyId: "template_bpfaocd"  // шаблон для УВЕДОМЛЕНИЙ
+    templateId: "template_bcb0yly",
+    templateNotifyId: "template_bpfaocd"
 };
 
 const BAN_PASSWORD_LIST = [
@@ -62,8 +65,6 @@ const ACCENT_COLORS = [
     { id: "yellow", name: "Жёлтый",     value: "#ffcc00" }
 ];
 
-// ИКОНКИ В ШАПКЕ
-// У тебя 4 арбуза + logo.png. Меняй имена файлов под свои:
 const APP_ICONS = [
     { id: "logo",     type: "image", value: "logo.png" },
     { id: "arbuz1",   type: "image", value: "arbuz1.png" },
@@ -80,7 +81,6 @@ const TRANSLATIONS = {
         close: "Закрыть", delete: "Удалить", add: "Добавить",
         enable: "Включить", disable: "Выключить", test: "Тест",
         loading: "Загрузка...", error: "Ошибка", success: "Успешно",
-
         section_profile: "Профиль",
         section_security: "Безопасность",
         section_appearance: "Внешний вид",
@@ -89,13 +89,11 @@ const TRANSLATIONS = {
         section_data: "Данные",
         section_app: "Приложение",
         section_about: "О системе",
-
         profile_avatar: "Аватар",
         profile_username: "Имя пользователя",
         profile_email: "Email",
         profile_status: "Статус",
         profile_icon: "Иконка в шапке",
-
         security_change_password: "Смена пароля",
         security_2fa: "Двухфакторная аутентификация",
         security_2fa_enable: "Включить 2FA",
@@ -103,7 +101,6 @@ const TRANSLATIONS = {
         security_incognito_hint: "Скрывает онлайн-статус и прочтение",
         security_hide_last_seen: "Показывать время последнего входа",
         security_hide_last_seen_hint: "Если выключено — только «был недавно»",
-
         appearance_theme: "Тема",
         appearance_theme_light: "Светлая",
         appearance_theme_dark: "Тёмная",
@@ -111,7 +108,6 @@ const TRANSLATIONS = {
         appearance_accent: "Акцентный цвет",
         appearance_font_size: "Размер текста",
         appearance_language: "Язык",
-
         notify_enabled: "Включить уведомления",
         notify_sound: "Звук уведомлений",
         notify_vibrate: "Вибрация",
@@ -125,10 +121,8 @@ const TRANSLATIONS = {
         notify_groups: "Группы",
         notify_channels: "Каналы",
         notify_mentions: "Упоминания",
-
         sounds_message: "Звук нового сообщения",
         sounds_sent: "Звук отправки",
-
         data_backup: "Резервная копия",
         data_export: "Экспорт данных",
         data_import: "Импорт данных",
@@ -140,21 +134,17 @@ const TRANSLATIONS = {
         data_import_success: "Данные восстановлены",
         data_import_error: "Файл повреждён",
         data_cache_cleared: "Кэш очищен",
-
         app_status: "Статус",
         app_status_in_app: "📱 Вы в приложении",
         app_status_in_browser: "🌐 Вы на сайте",
         app_download_apk: "Скачать APK",
         app_check_updates: "Проверить обновления",
-
         about_version: "Версия",
         about_developer: "Разработчик",
         about_tech: "Технологии",
         about_tech_value: "Supabase + Vanilla JS",
-
         twofa_title: "Введите код из письма",
         twofa_confirm: "Подтвердить",
-
         toast_password_changed: "Пароль изменён",
         toast_2fa_enabled: "2FA включена",
         toast_2fa_disabled: "2FA выключена",
@@ -168,7 +158,6 @@ const TRANSLATIONS = {
         close: "Close", delete: "Delete", add: "Add",
         enable: "Enable", disable: "Disable", test: "Test",
         loading: "Loading...", error: "Error", success: "Success",
-
         section_profile: "Profile",
         section_security: "Security",
         section_appearance: "Appearance",
@@ -177,13 +166,11 @@ const TRANSLATIONS = {
         section_data: "Data",
         section_app: "App",
         section_about: "About",
-
         profile_avatar: "Avatar",
         profile_username: "Username",
         profile_email: "Email",
         profile_status: "Status",
         profile_icon: "Header icon",
-
         security_change_password: "Change password",
         security_2fa: "Two-factor authentication",
         security_2fa_enable: "Enable 2FA",
@@ -191,7 +178,6 @@ const TRANSLATIONS = {
         security_incognito_hint: "Hides online status and read receipts",
         security_hide_last_seen: "Show last seen time",
         security_hide_last_seen_hint: "If off — only «recently»",
-
         appearance_theme: "Theme",
         appearance_theme_light: "Light",
         appearance_theme_dark: "Dark",
@@ -199,7 +185,6 @@ const TRANSLATIONS = {
         appearance_accent: "Accent color",
         appearance_font_size: "Font size",
         appearance_language: "Language",
-
         notify_enabled: "Enable notifications",
         notify_sound: "Notification sound",
         notify_vibrate: "Vibration",
@@ -213,10 +198,8 @@ const TRANSLATIONS = {
         notify_groups: "Groups",
         notify_channels: "Channels",
         notify_mentions: "Mentions",
-
         sounds_message: "New message sound",
         sounds_sent: "Sent sound",
-
         data_backup: "Backup",
         data_export: "Export data",
         data_import: "Import data",
@@ -228,21 +211,17 @@ const TRANSLATIONS = {
         data_import_success: "Data restored",
         data_import_error: "File corrupted",
         data_cache_cleared: "Cache cleared",
-
         app_status: "Status",
         app_status_in_app: "📱 You are in the app",
         app_status_in_browser: "🌐 You are on the website",
         app_download_apk: "Download APK",
         app_check_updates: "Check for updates",
-
         about_version: "Version",
         about_developer: "Developer",
         about_tech: "Tech",
         about_tech_value: "Supabase + Vanilla JS",
-
         twofa_title: "Enter code from email",
         twofa_confirm: "Confirm",
-
         toast_password_changed: "Password changed",
         toast_2fa_enabled: "2FA enabled",
         toast_2fa_disabled: "2FA disabled",
@@ -290,3 +269,13 @@ const LocalStore = {
 
 const REALTIME_URL = SUPABASE_CONFIG.url + "/realtime/v1";
 const REALTIME_TOPIC_PREFIX = "auth_";
+
+const APP_STORE_CONFIG = {
+    latestVersion: "1.0.0",
+    apkDownloadUrl: "https://example.com/leto_v1.0.0.apk",
+    appName: "Лето Мессенджер",
+    developer: "Команда Лето",
+    description: "Приватный и безопасный мессенджер с поддержкой 2FA, каналов, групп и голосовых сообщений. Встречай лето каждый день! ☀️",
+    minAndroid: "8.0+",
+    size: "15 MB"
+};

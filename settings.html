@@ -226,6 +226,53 @@
             </div>
         </section>
 
+        <!-- АНИМАЦИИ -->
+        <section class="settings-section" data-section="animations">
+            <button class="section-header" type="button">
+                <span class="section-icon">✨</span>
+                <span class="section-title">Анимации</span>
+                <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="section-body">
+                <div class="field">
+                    <label class="field-label">Анимация кнопки отправки (Самолётик)</label>
+                    <div class="theme-picker" id="send-anim-picker">
+                        <button class="theme-option" data-val="default" type="button">Стандарт</button>
+                        <button class="theme-option" data-val="spin" type="button">Вращение</button>
+                        <button class="theme-option" data-val="fly" type="button">Улёт</button>
+                    </div>
+                </div>
+                <div class="field" style="margin-top: 20px;">
+                    <label class="field-label">Анимация сообщений</label>
+                    <div class="theme-picker" id="msg-anim-picker">
+                        <button class="theme-option" data-val="default" type="button">Стандарт</button>
+                        <button class="theme-option" data-val="fade" type="button">Появление</button>
+                        <button class="theme-option" data-val="slide" type="button">Всплытие</button>
+                    </div>
+                </div>
+
+                <div class="field" style="margin-top: 24px;">
+                    <label class="field-label">Тест анимаций</label>
+                    <div class="preview-chat" style="height: 220px;">
+                        <div class="preview-chat-body" id="anim-preview-body" style="justify-content: flex-end;">
+                            <!-- Сюда будут добавляться тестовые сообщения -->
+                        </div>
+                        <div class="preview-chat-input">
+                            <input type="text" placeholder="Нажмите на кнопку для теста..." id="anim-preview-input" readonly>
+                            <button id="anim-preview-send-btn" type="button">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- УВЕДОМЛЕНИЯ -->
         <section class="settings-section" data-section="notifications">
             <button class="section-header" type="button">

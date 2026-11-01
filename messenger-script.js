@@ -52,6 +52,38 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!currentActiveUser) { window.location.href = "index.html"; return; }
 
     // =======================================================
+    // === ПРОВЕРКА ОБНОВЛЕНИЙ ПРИ ВХОДЕ ===
+    // =======================================================
+    async function checkAppUpdate() {
+        if (!currentActiveUser) return;
+        try {
+            const res = await fetch(SUPABASE_PROFILES_URL + "?username=eq." + encodeURIComponent(currentActiveUser) + "&select=app_version,update_notifications", {
+                method: "GET", headers: HEADERS_GET
+            });
+            const rows = await res.json();
+            if (rows && rows[0]) {
+                const userVersion = rows[0].app_version || '0.0.0';
+                const notifyEnabled = rows[0].update_notifications === true;
+                
+                if (userVersion !== APP_STORE_CONFIG.latestVersion && notifyEnabled) {
+                    const banner = document.getElementById('update-banner');
+                    if (banner) {
+                        banner.style.display = 'block';
+                        document.body.classList.add('has-update');
+                        banner.addEventListener('click', () => {
+                            window.location.href = 'store.html';
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Ошибка проверки обновлений:', e);
+        }
+    }
+    
+    checkAppUpdate();
+
+    // =======================================================
     // === ИКОНКА ПРИЛОЖЕНИЯ ===
     // =======================================================
     function applyAppIcon(iconPath) {
@@ -205,7 +237,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Обновлённая функция: если нет URL, рисует первую букву
     function setAvatarOnElement(el, url, fallbackName) {
         if (!el) return;
         if (url) {
@@ -246,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Принудительная загрузка аватара при старте
     (async function preloadMyAvatar() {
         delete avatarCache[currentActiveUser];
         const localUrl = LocalStore.get('avatar_url', '');
@@ -370,25 +400,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // =======================================================
     async function sendEmailNotification(msg) {
         const recipient = msg.receiver;
-        if (!recipient) return;
+        if (!recipient) return false;
         let profile = null;
         try {
             const res = await fetch(
                 SUPABASE_PROFILES_URL + "?username=eq." + encodeURIComponent(recipient) +
-                "&select=notify_email,notify_email_enabled,email_verified",
+                "&select=notify_email,notify_email_enabled,email_verified,last_active",
                 { method: "GET", headers: HEADERS_GET }
             );
             const rows = await res.json();
             if (rows && rows[0]) profile = rows[0];
-        } catch (e) { return; }
+        } catch (e) { return false; }
 
-        if (!profile) return;
-        if (profile.notify_email_enabled !== true) return;
-        if (profile.email_verified !== true) return;
-        if (!profile.notify_email) return;
+        if (!profile) return false;
+        if (profile.notify_email_enabled !== true) return false;
+        if (profile.email_verified !== true) return false;
+        if (!profile.notify_email) return false;
+
+        // Проверка на онлайн (если был активен менее 40 секунд назад - не шлем)
+        if (profile.last_active) {
+            const lastActiveMs = new Date(profile.last_active).getTime();
+            const diffSec = (Date.now() - lastActiveMs) / 1000;
+            if (diffSec < 40) {
+                return false; // Пользователь в сети
+            }
+        }
 
         try {
-            await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            const emailRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -404,7 +443,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
             });
-        } catch (e) {}
+            return emailRes.ok;
+        } catch (e) {
+            console.warn('Ошибка отправки email:', e);
+            return false;
+        }
     }
 
     // =======================================================
@@ -416,8 +459,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const svgVerified = `<svg viewBox="0 0 24 24" fill="none" style="width:14px;height:14px;margin-left:4px;display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#248bf2"/></svg>`;
+    const svgTickClock = `<svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px;"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" fill="#8c9197"/></svg>`;
     const svgTickSingle = `<svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="#8c9197"/></svg>`;
     const svgTickDouble = `<svg viewBox="0 0 24 24" fill="none" style="width:13px;height:13px;"><path d="M18 7l-1.41-1.41L9 13.17 5.41 9.59 4 11l5 5 9-9zM22 7l-1.41-1.41L13 13.17l-1.59-1.59L10 13l3 3 9-9z" fill="#4bb34b"/></svg>`;
+    
     const svgSettings = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;color:var(--text-muted);"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
     // =======================================================
@@ -744,6 +789,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // === ОТКРЫТИЕ ЧАТА ===
     // =======================================================
     function openChatWorkspace(chatName) {
+        if (activeChatTarget !== chatName) {
+            history.pushState({ chatOpen: true }, '');
+        }
+
         activeChatTarget = chatName;
         lastMessagesCount = -1;
         clearInterval(refreshInterval);
@@ -1014,11 +1063,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const blockArr = Array.isArray(blocked) ? blocked : [];
             messages = messages.filter(m => !blockArr.includes(m.sender));
 
-            saveMessagesToCache(currentChatType, activeChatTarget, messages);
+            const cached = getMessagesFromCache(currentChatType, activeChatTarget);
+            const serverTimestamps = new Set(messages.map(m => m.created_at));
+            const sendingMsgs = cached.filter(m => m.is_sending && !serverTimestamps.has(m.created_at));
+            
+            if (sendingMsgs.length > 0) {
+                messages = messages.concat(sendingMsgs);
+                messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+            }
+
+            saveMessagesToCache(currentChatType, activeChatTarget, messages.filter(m => !m.is_sending));
 
             if (messages.length > lastMessagesCount && lastMessagesCount > 0) {
                 const lm = messages[messages.length - 1];
-                if (lm.sender !== currentActiveUser) {
+                if (lm.sender !== currentActiveUser && !lm.is_sending) {
                     const chatOpen = !document.hidden && activeChatTarget === lm.receiver;
                     if (!chatOpen) {
                         const label = currentChatType === 'contact'
@@ -1087,7 +1145,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             let timeStr = formatMessageTime(msg.created_at);
-            let ticks = isMy ? (msg.is_read ? svgTickDouble : svgTickSingle) : '';
+            let ticks = '';
+            
+            if (isMy) {
+                if (msg.is_sending) {
+                    ticks = svgTickClock;
+                } else if (msg.is_read) {
+                    ticks = svgTickDouble;
+                } else {
+                    ticks = svgTickSingle;
+                }
+            }
+            
             const metaHTML = `<div class="msg-meta-container"><span>${timeStr}</span>${ticks}</div>`;
 
             let contentHTML = '';
@@ -1143,8 +1212,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const total = Object.values(unreadByChat).reduce((a, b) => a + b, 0);
             MedianBridge.setBadge(total);
         }
-
-        sendEmailNotification(msg);
     }
 
     // =======================================================
@@ -1159,22 +1226,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    mediaFileInput.addEventListener('change', function() {
+    mediaFileInput.addEventListener('change', async function() {
         if (this.files.length === 0) return;
         const file = this.files[0];
+        
+        const localBlobUrl = URL.createObjectURL(file);
+        const tempMsg = {
+            id: 'temp_' + Date.now(),
+            sender: currentActiveUser,
+            receiver: activeChatTarget,
+            text: localBlobUrl,
+            type: file.type.startsWith('image/') ? "image" : "file",
+            chat_type: currentChatType,
+            is_read: false,
+            is_sending: true, 
+            created_at: new Date().toISOString()
+        };
+
+        const currentMsgs = getMessagesFromCache(currentChatType, activeChatTarget);
+        currentMsgs.push(tempMsg);
+        renderMessages(currentMsgs);
+        messagesScreen.scrollTop = messagesScreen.scrollHeight;
+
         const fileName = "chat_" + Date.now() + "." + file.name.split('.').pop();
 
-        fetch(MY_SUPABASE_URL + "/storage/v1/object/media/" + fileName, {
-            method: "POST",
-            headers: {
-                "apikey": MY_SERVER_KEY,
-                "Authorization": "Bearer " + MY_SERVER_KEY,
-                "Content-Type": file.type
-            },
-            body: file
-        }).then(() => {
+        try {
+            await fetch(MY_SUPABASE_URL + "/storage/v1/object/media/" + fileName, {
+                method: "POST",
+                headers: {
+                    "apikey": MY_SERVER_KEY,
+                    "Authorization": "Bearer " + MY_SERVER_KEY,
+                    "Content-Type": file.type
+                },
+                body: file
+            });
+            
             const fullUrl = MY_SUPABASE_URL + "/storage/v1/object/public/media/" + fileName;
-            return fetch(SUPABASE_MSG_URL, {
+            await fetch(SUPABASE_MSG_URL, {
                 method: "POST", headers: HEADERS,
                 body: JSON.stringify({
                     sender: currentActiveUser,
@@ -1183,10 +1271,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     type: file.type.startsWith('image/') ? "image" : "file",
                     chat_type: currentChatType,
                     is_read: false,
-                    created_at: new Date().toISOString()
+                    created_at: tempMsg.created_at
                 })
             });
-        }).then(() => { lastMessagesCount = -1; loadMessages(); playSound('sent'); });
+
+            await sendEmailNotification(tempMsg);
+            
+            lastMessagesCount = -1; 
+            loadMessages(); 
+            playSound('sent');
+        } catch (e) {
+            alert("Ошибка отправки файла");
+            const msgs = getMessagesFromCache(currentChatType, activeChatTarget).filter(m => m.id !== tempMsg.id);
+            saveMessagesToCache(currentChatType, activeChatTarget, msgs);
+            renderMessages(msgs);
+        }
     });
 
     if (micBtn) {
@@ -1200,19 +1299,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     mediaRecorder = new MediaRecorder(stream);
                     audioChunks = [];
                     mediaRecorder.addEventListener("dataavailable", ev => audioChunks.push(ev.data));
-                    mediaRecorder.addEventListener("stop", () => {
+                    mediaRecorder.addEventListener("stop", async () => {
                         const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const localVoiceUrl = URL.createObjectURL(audioBlob);
+                        
+                        const tempMsg = {
+                            id: 'temp_voice_' + Date.now(),
+                            sender: currentActiveUser,
+                            receiver: activeChatTarget,
+                            text: localVoiceUrl,
+                            type: "voice",
+                            chat_type: currentChatType,
+                            is_read: false,
+                            is_sending: true,
+                            created_at: new Date().toISOString()
+                        };
+                        
+                        const currentMsgs = getMessagesFromCache(currentChatType, activeChatTarget);
+                        currentMsgs.push(tempMsg);
+                        renderMessages(currentMsgs);
+                        messagesScreen.scrollTop = messagesScreen.scrollHeight;
+
                         const audioName = "voice_" + Date.now() + ".webm";
-                        fetch(MY_SUPABASE_URL + "/storage/v1/object/media/" + audioName, {
-                            method: "POST",
-                            headers: {
-                                "apikey": MY_SERVER_KEY,
-                                "Authorization": "Bearer " + MY_SERVER_KEY,
-                                "Content-Type": "audio/webm"
-                            },
-                            body: audioBlob
-                        }).then(() => {
-                            return fetch(SUPABASE_MSG_URL, {
+                        
+                        try {
+                            await fetch(MY_SUPABASE_URL + "/storage/v1/object/media/" + audioName, {
+                                method: "POST",
+                                headers: {
+                                    "apikey": MY_SERVER_KEY,
+                                    "Authorization": "Bearer " + MY_SERVER_KEY,
+                                    "Content-Type": "audio/webm"
+                                },
+                                body: audioBlob
+                            });
+                            
+                            await fetch(SUPABASE_MSG_URL, {
                                 method: "POST", headers: HEADERS,
                                 body: JSON.stringify({
                                     sender: currentActiveUser,
@@ -1221,10 +1342,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                     type: "voice",
                                     chat_type: currentChatType,
                                     is_read: false,
-                                    created_at: new Date().toISOString()
+                                    created_at: tempMsg.created_at
                                 })
                             });
-                        }).then(() => { lastMessagesCount = -1; loadMessages(); playSound('sent'); });
+
+                            await sendEmailNotification(tempMsg);
+                            lastMessagesCount = -1; 
+                            loadMessages(); 
+                            playSound('sent'); 
+                        } catch (e) {
+                            alert("Ошибка отправки голосового");
+                            const msgs = getMessagesFromCache(currentChatType, activeChatTarget).filter(m => m.id !== tempMsg.id);
+                            saveMessagesToCache(currentChatType, activeChatTarget, msgs);
+                            renderMessages(msgs);
+                        }
+                        
                         stream.getTracks().forEach(t => t.stop());
                         micBtn.classList.remove('recording');
                         setMyStatus(null);
@@ -1258,6 +1390,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const ctxMenu = document.getElementById('leto-custom-context-menu');
     function openContextMenu(x, y, msg, isMy) {
+        if (msg.is_sending) return;
         selectedMsgData = msg;
         if (!ctxMenu) return;
         ctxMenu.style.display = 'block';
@@ -1588,34 +1721,61 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =======================================================
-    // === ОТПРАВКА ===
+    // === ОТПРАВКА ТЕКСТА ===
     // =======================================================
-    function handleSendMessage() {
+    async function handleSendMessage() {
         if (!mainMessageField) return;
         const text = mainMessageField.value.trim();
         if (!text || !activeChatTarget) return;
         if (mainMessageField.disabled) return;
 
-        fetch(SUPABASE_MSG_URL, {
-            method: "POST", headers: HEADERS,
-            body: JSON.stringify({
-                sender: currentActiveUser,
-                receiver: activeChatTarget,
-                text: text,
-                type: "text",
-                chat_type: currentChatType,
-                is_read: false,
-                created_at: new Date().toISOString()
-            })
-        }).then(() => {
-            mainMessageField.value = "";
+        const tempMsg = {
+            id: 'temp_text_' + Date.now(),
+            sender: currentActiveUser,
+            receiver: activeChatTarget,
+            text: text,
+            type: "text",
+            chat_type: currentChatType,
+            is_read: false,
+            is_sending: true,
+            created_at: new Date().toISOString()
+        };
+
+        const currentMsgs = getMessagesFromCache(currentChatType, activeChatTarget);
+        currentMsgs.push(tempMsg);
+        renderMessages(currentMsgs);
+        messagesScreen.scrollTop = messagesScreen.scrollHeight;
+
+        mainMessageField.value = "";
+        clearTimeout(typingTimeout);
+        isTypingAnnounced = false;
+        setMyStatus(null);
+
+        try {
+            await fetch(SUPABASE_MSG_URL, {
+                method: "POST", headers: HEADERS,
+                body: JSON.stringify({
+                    sender: currentActiveUser,
+                    receiver: activeChatTarget,
+                    text: text,
+                    type: "text",
+                    chat_type: currentChatType,
+                    is_read: false,
+                    created_at: tempMsg.created_at
+                })
+            });
+
+            await sendEmailNotification(tempMsg);
+
             lastMessagesCount = -1;
             loadMessages();
             playSound('sent');
-            clearTimeout(typingTimeout);
-            isTypingAnnounced = false;
-            setMyStatus(null);
-        });
+        } catch (e) {
+            alert("Ошибка отправки сообщения");
+            const msgs = getMessagesFromCache(currentChatType, activeChatTarget).filter(m => m.id !== tempMsg.id);
+            saveMessagesToCache(currentChatType, activeChatTarget, msgs);
+            renderMessages(msgs);
+        }
     }
 
     if (sendBtn) sendBtn.addEventListener('click', handleSendMessage);
@@ -1651,10 +1811,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (mobileBackBtn) {
         mobileBackBtn.addEventListener('click', () => {
-            if (appContainer) appContainer.classList.remove('show-chat');
-            activeChatTarget = null;
+            history.back();
         });
     }
+
+    window.addEventListener('popstate', function(e) {
+        if (activeChatTarget) {
+            activeChatTarget = null;
+            clearInterval(refreshInterval);
+            
+            if (appContainer) appContainer.classList.remove('show-chat');
+            if (fallbackNotice) fallbackNotice.style.display = 'block';
+            if (chatHeader) chatHeader.style.display = 'none';
+            if (messagesScreen) messagesScreen.style.display = 'none';
+            if (inputZone) inputZone.style.display = 'none';
+            if (roomSettingsBtn) roomSettingsBtn.style.display = 'none';
+            if (settingsPanel) settingsPanel.style.display = 'none';
+            
+            loadChats();
+        }
+    });
 
     // =======================================================
     // === ГЛОБАЛЬНЫЙ ОПРОС ===
