@@ -786,10 +786,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =======================================================
-    // === ОТКРЫТИЕ И ЗАКРЫТИЕ ЧАТА ===
+    // === ОТКРЫТИЕ ЧАТА ===
     // =======================================================
     function openChatWorkspace(chatName) {
-        // Никаких history.pushState - просто открываем чат
         activeChatTarget = chatName;
         lastMessagesCount = -1;
         clearInterval(refreshInterval);
@@ -828,22 +827,6 @@ document.addEventListener('DOMContentLoaded', function() {
             proceedOpeningWorkspace(chatName);
         })
         .catch(() => proceedOpeningWorkspace(chatName));
-    }
-
-    // Новая функция для закрытия чата по внутренней стрелке
-    function closeActiveChat() {
-        activeChatTarget = null;
-        clearInterval(refreshInterval);
-
-        if (appContainer) appContainer.classList.remove('show-chat');
-        if (fallbackNotice) fallbackNotice.style.display = 'block';
-        if (chatHeader) chatHeader.style.display = 'none';
-        if (messagesScreen) messagesScreen.style.display = 'none';
-        if (inputZone) inputZone.style.display = 'none';
-        if (roomSettingsBtn) roomSettingsBtn.style.display = 'none';
-        if (settingsPanel) settingsPanel.style.display = 'none';
-
-        loadChats();
     }
 
     function showGroupDenied(chatName) {
@@ -1822,14 +1805,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // 🔥 ВЫХОД ИЗ ЧАТА ПО СТРЕЛОЧКЕ (ТОЧНО КАК В СТАРОЙ ВЕРСИИ)
     if (mobileBackBtn) {
-        mobileBackBtn.addEventListener('click', function() {
-            // Теперь стрелка назад вызывает функцию закрытия чата, а не history.back()
-            closeActiveChat();
+        mobileBackBtn.addEventListener('click', () => {
+            if (appContainer) appContainer.classList.remove('show-chat');
+            activeChatTarget = null;
+            clearInterval(refreshInterval);
+            loadChats();
         });
     }
-
-    // Обработчик popstate УДАЛЕН, так как мы не добавляем записи в историю
 
     // =======================================================
     // === ГЛОБАЛЬНЫЙ ОПРОС ===
