@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const STORAGE_PUBLIC_URL = SUPABASE_URL + "/storage/v1/object/public/media/";
 
     const activeUser = getActiveUser();
-    if (!activeUser) { window.location.href = "index.html"; return; }
+    if (!activeUser) { window.location.replace("index.html"); return; }
 
     let pendingCode = null;
     let resendTimer = null;
@@ -1235,10 +1235,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.disabled = false;
             } else if (userVersion === '0.0.0') {
                 showToast('Версия неизвестна. Скачайте приложение из магазина.', 'error');
-                setTimeout(() => { window.location.href = 'store.html'; }, 2000);
+                setTimeout(() => { window.location.replace('store.html'); }, 2000);
             } else {
                 showToast('Доступна новая версия: ' + APP_STORE_CONFIG.latestVersion, 'success');
-                setTimeout(() => { window.location.href = 'store.html'; }, 1500);
+                setTimeout(() => { window.location.replace('store.html'); }, 1500);
             }
         } catch (e) {
             const localVersion = localStorage.getItem('leto_app_version') || '0.0.0';
@@ -1246,7 +1246,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('У вас самая свежая версия (' + localVersion + ')', 'success');
             } else {
                 showToast('Доступна новая версия. Переход в магазин...', 'error');
-                setTimeout(() => { window.location.href = 'store.html'; }, 1500);
+                setTimeout(() => { window.location.replace('store.html'); }, 1500);
             }
             btn.textContent = 'Проверить обновления';
             btn.disabled = false;
@@ -1266,11 +1266,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const first = document.querySelector('.settings-section');
     if (first) first.classList.add('open');
 
+    // Используем location.replace, чтобы не засорять историю
     document.getElementById('back-btn').addEventListener('click', function() {
-        window.location.href = 'messenger.html';
+        window.location.replace('messenger.html');
     });
     document.getElementById('back-to-messenger-btn').addEventListener('click', function() {
-        window.location.href = 'messenger.html';
+        window.location.replace('messenger.html');
     });
 
     // =======================================================
