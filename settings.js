@@ -1,7 +1,3 @@
-// =======================================================
-// ☀️ НАСТРОЙКИ МЕССЕНДЖЕРА «ЛЕТО»
-// =======================================================
-
 document.addEventListener('DOMContentLoaded', function() {
 
     const SUPABASE_URL = SUPABASE_CONFIG.url;
@@ -29,9 +25,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const CACHE_MESSAGES_KEY = 'leto_cache_messages';
     const CACHE_CHATS_KEY = 'leto_cache_chats';
 
-    // =======================================================
-    // ДИНАМИЧЕСКАЯ ИКОНКА ПРИЛОЖЕНИЯ (PWA)
-    // =======================================================
     function updateAppIcon(iconPath) {
         let linkIcon = document.querySelector("link[rel~='icon']");
         if (!linkIcon) {
@@ -58,16 +51,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 .catch(e => console.warn('Не удалось обновить манифест:', e));
         }
 
-        if (window.median) {
-            if (typeof window.median.setAppIcon === 'function') {
-                try { window.median.setAppIcon(iconPath); } catch(e) {}
-            }
+        if (window.median && typeof window.median.setAppIcon === 'function') {
+            try { window.median.setAppIcon(iconPath); } catch(e) {}
         }
     }
 
-    // =======================================================
-    // TOAST
-    // =======================================================
     function showToast(text, type) {
         const container = document.getElementById('leto-toast-container');
         if (!container) return;
@@ -83,9 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
         while (container.children.length > 3) container.firstChild.remove();
     }
 
-    // =======================================================
-    // CONFIRM DIALOG
-    // =======================================================
     function confirmDialog(title, text, onOk) {
         const modal = document.getElementById('confirm-modal');
         document.getElementById('confirm-modal-title').textContent = title;
@@ -105,9 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
         closeConfirm();
     });
 
-    // =======================================================
-    // ТЕМА / АКЦЕНТ / ШРИФТ
-    // =======================================================
     function applyTheme(theme) {
         let actual = theme;
         if (theme === 'system') {
@@ -133,9 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedIcon = LocalStore.get('app_icon', APP_CONFIG.defaultAppIcon);
     updateAppIcon(savedIcon);
 
-    // =======================================================
-    // ПРОФИЛЬ
-    // =======================================================
     async function patchProfile(fields) {
         try {
             const checkRes = await fetch(
@@ -159,9 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // EMAIL С СЕРВЕРА
-    // =======================================================
     async function loadEmailFromServer() {
         try {
             const res = await fetch(
@@ -193,9 +169,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // СТАТУС EMAIL
-    // =======================================================
     function updateEmailStatus() {
         const block = document.getElementById('email-block');
         const icon = document.getElementById('email-status-icon');
@@ -226,9 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // МОИ КОНТАКТЫ (АЛИАСЫ)
-    // =======================================================
     async function loadContactAliases() {
         const listEl = document.getElementById('contacts-alias-list');
         if (!listEl) return;
@@ -298,9 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // ПРЕДПРОСМОТР — аватар
-    // =======================================================
     function updatePreviewAvatar() {
         const el = document.getElementById('preview-chat-avatar');
         if (!el) return;
@@ -323,9 +290,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // ЗАГРУЗКА НАСТРОЕК
-    // =======================================================
     async function loadSettings() {
         document.getElementById('field-username').value = activeUser;
         renderAvatar();
@@ -337,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('field-status').value = LocalStore.get('status', '') || '';
 
         const theme = LocalStore.get('theme', 'light');
-        document.querySelectorAll('.theme-option').forEach(function(b) {
+        document.querySelectorAll('#theme-picker .theme-option').forEach(function(b) {
             b.classList.toggle('selected', b.getAttribute('data-theme') === theme);
         });
         renderAccentPicker();
@@ -378,7 +342,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updatePreviewAvatar();
         updateCacheStats();
 
-        // --- Анимации ---
         const sendAnim = LocalStore.get('send_anim', 'default');
         document.querySelectorAll('#send-anim-picker .theme-option').forEach(function(btn) {
             btn.classList.toggle('selected', btn.getAttribute('data-val') === sendAnim);
@@ -402,9 +365,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // АВАТАР
-    // =======================================================
     async function renderAvatar() {
         const preview = document.getElementById('profile-avatar-preview');
         if (!preview) return;
@@ -491,9 +451,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('Аватар обновлён', 'success');
     });
 
-    // =======================================================
-    // ИКОНКИ ПРИЛОЖЕНИЯ
-    // =======================================================
     function renderIconPicker() {
         const picker = document.getElementById('app-icon-picker');
         if (!picker) return;
@@ -522,9 +479,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // АКЦЕНТ
-    // =======================================================
     function renderAccentPicker() {
         const picker = document.getElementById('accent-picker');
         if (!picker) return;
@@ -547,13 +501,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // ТЕМА
-    // =======================================================
-    document.querySelectorAll('.theme-option').forEach(function(btn) {
+    document.querySelectorAll('#theme-picker .theme-option').forEach(function(btn) {
         btn.addEventListener('click', function() {
             const theme = btn.getAttribute('data-theme');
-            document.querySelectorAll('.theme-option').forEach(function(b) { b.classList.remove('selected'); });
+            document.querySelectorAll('#theme-picker .theme-option').forEach(function(b) { b.classList.remove('selected'); });
             btn.classList.add('selected');
             LocalStore.set('theme', theme);
             applyTheme(theme);
@@ -565,9 +516,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (LocalStore.get('theme', 'light') === 'system') applyTheme('system');
     });
 
-    // =======================================================
-    // РАЗМЕР ШРИФТА
-    // =======================================================
     document.getElementById('font-size-range').addEventListener('input', function() {
         const v = parseInt(this.value);
         document.getElementById('font-size-value').textContent = v + 'px';
@@ -575,9 +523,6 @@ document.addEventListener('DOMContentLoaded', function() {
         applyFontSize(v);
     });
 
-    // =======================================================
-    // ЛОКАЛЬНЫЕ ПЕРЕКЛЮЧАТЕЛИ
-    // =======================================================
     const localToggles = [
         ['toggle-2fa', 'two_factor_enabled'],
         ['toggle-incognito', 'incognito'],
@@ -621,9 +566,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // =======================================================
-    // EMAIL И СМЕНА EMAIL
-    // =======================================================
     document.getElementById('toggle-notify-email').addEventListener('change', function() {
         if (this.checked && (!currentEmail || !emailVerified)) {
             this.checked = false;
@@ -641,7 +583,6 @@ document.addEventListener('DOMContentLoaded', function() {
         LocalStore.set('quiet_hours_to', this.value);
     });
 
-    // Обработчик кнопки Изменить/Сохранить Email
     document.getElementById('email-edit-btn').addEventListener('click', function() {
         if (isEditingEmail) {
             const newEmail = document.getElementById('field-email').value.trim();
@@ -717,9 +658,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // =======================================================
-    // СМЕНА НИКНЕЙМА
-    // =======================================================
     document.getElementById('change-username-btn').addEventListener('click', function() {
         document.getElementById('username-change-password').value = '';
         document.getElementById('username-change-new').value = '';
@@ -862,9 +800,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // =======================================================
-    // ЗВУКИ
-    // =======================================================
     document.getElementById('test-message-sound').addEventListener('click', function() {
         const a = new Audio('message.mp3');
         a.play().catch(function() { showToast('Файл message.mp3 не найден', 'error'); });
@@ -874,9 +809,6 @@ document.addEventListener('DOMContentLoaded', function() {
         a.play().catch(function() { showToast('Файл sent.mp3 не найден', 'error'); });
     });
 
-    // =======================================================
-    // СТАТУС
-    // =======================================================
     document.getElementById('save-status-btn').addEventListener('click', async function() {
         const status = document.getElementById('field-status').value.trim();
         LocalStore.set('status', status);
@@ -884,9 +816,6 @@ document.addEventListener('DOMContentLoaded', function() {
         showToast('Статус сохранён', 'success');
     });
 
-    // =======================================================
-    // СМЕНА ПАРОЛЯ
-    // =======================================================
     document.getElementById('change-password-btn').addEventListener('click', async function() {
         const oldP = document.getElementById('old-password').value;
         const newP = document.getElementById('new-password').value;
@@ -922,9 +851,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // =======================================================
-    // ВЕРИФИКАЦИЯ EMAIL
-    // =======================================================
     document.getElementById('email-verify-btn').addEventListener('click', async function() {
         const email = document.getElementById('field-email').value.trim();
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -964,9 +890,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) { setModalStatus('Сетевая ошибка', 'error'); }
     });
 
-    // =======================================================
-    // МОДАЛКА КОДА
-    // =======================================================
     function openCodeModal(target) {
         const modal = document.getElementById('code-modal');
         document.getElementById('modal-description').textContent = 'Мы отправили код на ' + target;
@@ -1071,9 +994,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // КЭШ
-    // =======================================================
     document.getElementById('clear-chat-cache-btn').addEventListener('click', function() {
         confirmDialog('Очистить кэш чатов?', 'Все сохранённые сообщения и чаты будут удалены с устройства.', function() {
             localStorage.removeItem(CACHE_MESSAGES_KEY);
@@ -1083,9 +1003,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // =======================================================
-    // БЭКАП
-    // =======================================================
     function generateBackupKey() {
         const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let key = '';
@@ -1204,9 +1121,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // =======================================================
-    // ПРИЛОЖЕНИЕ
-    // =======================================================
     document.getElementById('download-apk-btn').addEventListener('click', function() {
         const url = APP_STORE_CONFIG.apkDownloadUrl || APP_CONFIG.apkDownloadUrl;
         if (window.median && window.median.openUrl) window.median.openUrl(url);
@@ -1253,9 +1167,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // =======================================================
-    // СЕКЦИИ
-    // =======================================================
     document.querySelectorAll('.section-header').forEach(function(header) {
         header.addEventListener('click', function() {
             const section = header.closest('.settings-section');
@@ -1266,7 +1177,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const first = document.querySelector('.settings-section');
     if (first) first.classList.add('open');
 
-    // Используем location.replace, чтобы не засорять историю
     document.getElementById('back-btn').addEventListener('click', function() {
         window.location.replace('messenger.html');
     });
@@ -1274,9 +1184,6 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.replace('messenger.html');
     });
 
-    // =======================================================
-    // АНИМАЦИИ - ОБРАБОТЧИКИ
-    // =======================================================
     document.querySelectorAll('#send-anim-picker .theme-option').forEach(function(btn) {
         btn.addEventListener('click', function() {
             document.querySelectorAll('#send-anim-picker .theme-option').forEach(b => b.classList.remove('selected'));
@@ -1285,10 +1192,9 @@ document.addEventListener('DOMContentLoaded', function() {
             LocalStore.set('send_anim', val);
             showToast('Анимация отправки: ' + this.textContent, 'success');
             
-            // Тест анимации кнопки
             const previewBtn = document.getElementById('anim-preview-send-btn');
             previewBtn.classList.remove('anim-btn-spin', 'anim-btn-fly');
-            void previewBtn.offsetWidth; // Сброс анимации
+            void previewBtn.offsetWidth;
             if (val !== 'default') previewBtn.classList.add('anim-btn-' + val);
         });
     });
@@ -1301,12 +1207,10 @@ document.addEventListener('DOMContentLoaded', function() {
             LocalStore.set('msg_anim', val);
             showToast('Анимация сообщений: ' + this.textContent, 'success');
 
-            // Тест анимации сообщения
             playAnimPreviewMessage(val);
         });
     });
 
-    // Обработчик тестовой отправки в предпросмотре
     document.getElementById('anim-preview-send-btn').addEventListener('click', function() {
         const sendVal = LocalStore.get('send_anim', 'default');
         this.classList.remove('anim-btn-spin', 'anim-btn-fly');
@@ -1319,7 +1223,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function playAnimPreviewMessage(animType) {
         const body = document.getElementById('anim-preview-body');
-        // Очищаем, оставляем только последнее
         if (body.children.length > 1) {
             body.removeChild(body.firstChild);
         }
@@ -1339,8 +1242,5 @@ document.addEventListener('DOMContentLoaded', function() {
         body.scrollTop = body.scrollHeight;
     }
 
-    // =======================================================
-    // СТАРТ
-    // =======================================================
     loadSettings();
 });

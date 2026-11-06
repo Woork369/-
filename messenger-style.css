@@ -10,6 +10,7 @@
     --bubble-other: #ffffff;
     --verified-color: #248bf2;
     --danger-color: #dc3545;
+    --message-font-size: 15px;
 }
 
 * {
@@ -38,7 +39,6 @@ body, html {
     overflow: hidden;
 }
 
-/* ============ SIDEBAR ============ */
 .sidebar-section {
     width: 320px;
     min-width: 320px;
@@ -219,7 +219,6 @@ body, html {
     box-shadow: 0 2px 6px rgba(0, 122, 255, 0.4);
 }
 
-/* ============ CHAT SECTION ============ */
 .chat-section {
     flex: 1;
     display: flex;
@@ -341,7 +340,6 @@ body, html {
     background: var(--bg-main);
 }
 
-/* ============ MESSAGES ============ */
 .messages-viewport {
     flex: 1;
     overflow-y: auto;
@@ -377,7 +375,7 @@ body, html {
 .msg-bubble {
     padding: 8px 12px 6px 12px;
     border-radius: 16px;
-    font-size: 15px;
+    font-size: var(--message-font-size, 15px);
     line-height: 1.4;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
     word-break: break-word;
@@ -482,7 +480,6 @@ body, html {
     padding: 4px 0;
 }
 
-/* ============ CONTEXT MENU ============ */
 .leto-context-menu {
     display: none;
     position: fixed;
@@ -514,7 +511,6 @@ body, html {
     color: var(--danger-color);
 }
 
-/* ============ SETTINGS PANEL ============ */
 .leto-room-settings-panel {
     display: none;
     flex-direction: column;
@@ -687,7 +683,6 @@ body, html {
     word-break: break-word;
 }
 
-/* ============ INPUT ZONE ============ */
 .message-input-zone {
     background: #f0f0f0;
     padding: 12px 16px;
@@ -727,40 +722,6 @@ body, html {
     font-style: italic;
 }
 
-.no-access-note {
-    flex: 1;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 14px;
-    padding: 10px;
-}
-
-#channel-subscribe-btn {
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 20px;
-    background: var(--primary-color);
-    color: #fff;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-#channel-subscribe-btn:hover {
-    background-color: var(--primary-hover);
-}
-
-#channel-subscribe-btn:active {
-    transform: scale(0.97);
-}
-
-#channel-subscribe-btn:disabled {
-    opacity: 0.7;
-    cursor: wait;
-}
-
 .icon-btn,
 .tool-btn {
     background: none;
@@ -798,7 +759,6 @@ body, html {
     display: none !important;
 }
 
-/* ============ MIC ============ */
 .mic-btn {
     position: relative;
 }
@@ -852,7 +812,6 @@ body, html {
     to   { transform: scale(1.15); }
 }
 
-/* ============ SEND BUTTON ============ */
 .telegram-send-btn {
     background: var(--primary-color) !important;
     color: white !important;
@@ -899,7 +858,6 @@ body, html {
     100% { transform: translate(-55%, -45%) scale(1); opacity: 1; }
 }
 
-/* ============ DATE BADGE ============ */
 .chat-date-badge {
     display: flex;
     justify-content: center;
@@ -921,7 +879,6 @@ body, html {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* ============ SETTINGS BUTTON ============ */
 #global-settings-btn {
     background: none;
     border: none;
@@ -937,7 +894,6 @@ body, html {
     background: var(--bg-main);
 }
 
-/* ============ MODAL ============ */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -1043,7 +999,6 @@ body, html {
     to   { opacity: 1; transform: scale(1); }
 }
 
-/* ============ TOAST ============ */
 .leto-toast-container {
     position: fixed;
     top: 16px;
@@ -1098,7 +1053,104 @@ body, html {
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ============ RESPONSIVE ============ */
+.anim-btn-spin svg {
+    animation: letoPlaneSpin 0.55s ease;
+}
+@keyframes letoPlaneSpin {
+    from { transform: translate(-55%, -45%) rotate(0deg); }
+    to   { transform: translate(-55%, -45%) rotate(360deg); }
+}
+
+.anim-btn-fly svg {
+    animation: letoPlaneFly 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes letoPlaneFly {
+    0%   { transform: translate(-55%, -45%) scale(1); opacity: 1; }
+    45%  { transform: translate(180%, -180%) scale(0.4); opacity: 0; }
+    46%  { transform: translate(-180%, 180%) scale(0.4); opacity: 0; }
+    100% { transform: translate(-55%, -45%) scale(1); opacity: 1; }
+}
+
+.anim-msg-fade {
+    animation: letoMsgFade 0.32s ease both;
+}
+@keyframes letoMsgFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.anim-msg-slide {
+    animation: letoMsgSlide 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes letoMsgSlide {
+    from { opacity: 0; transform: translateY(14px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============ DARK THEME ============ */
+[data-theme="dark"] {
+    --bg-main: #1a1d21;
+    --bg-white: #23262b;
+    --border-color: #2a2f38;
+    --text-primary: #e8eaed;
+    --text-muted: #9aa0a6;
+    --bubble-me: #2b5278;
+    --bubble-other: #23262b;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] html {
+    background-color: var(--bg-main);
+}
+
+[data-theme="dark"] .chat-section {
+    background-color: #1a1d21;
+    background-image: url('bg-chat_tema.jpg');
+}
+
+[data-theme="dark"] .chat-workspace-header {
+    background: rgba(35, 38, 43, 0.85);
+}
+
+[data-theme="dark"] .tab-btn.active {
+    background: rgba(0, 122, 255, 0.2);
+    color: #5ab4ff;
+}
+
+[data-theme="dark"] .message-input-zone {
+    background: #1a1d21;
+}
+
+[data-theme="dark"] .input-container-row {
+    background: #2a2e33;
+}
+
+[data-theme="dark"] #main-message-field {
+    color: #e8eaed;
+}
+
+[data-theme="dark"] #main-message-field::placeholder {
+    color: #7a828a;
+}
+
+[data-theme="dark"] .leto-context-menu {
+    background: #23262b;
+    border-color: #2a2f38;
+}
+
+[data-theme="dark"] .leto-toast {
+    background: rgba(35, 38, 43, 0.96);
+}
+
+[data-theme="dark"] .modal-card {
+    background: #23262b;
+}
+
+[data-theme="dark"] .modal-btn-cancel {
+    background: #2a2e33;
+    color: #e8eaed;
+}
+
 @media (min-width: 1025px) {
     .back-to-list-btn {
         display: none !important;
@@ -1149,5 +1201,4 @@ body, html {
     .leto-toast-container {
         top: 10px;
     }
-
 }

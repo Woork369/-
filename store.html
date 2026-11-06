@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Лето — Магазин приложений</title>
+    <link rel="stylesheet" href="store.css">
+</head>
+<body>
+
+<div class="store-container">
+    <header class="store-header">
+        <button id="back-btn" class="store-back-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h1 class="store-title">Магазин Лето</h1>
+    </header>
+
+    <main class="store-content">
+        <div class="app-card">
+            <div class="app-header">
+                <div class="app-icon-wrapper">
+                    <img src="logo.png" alt="Лето" class="app-icon">
+                </div>
+                <div class="app-info">
+                    <h2 class="app-name">Лето Мессенджер</h2>
+                    <div class="app-developer">
+                        Команда Лето 
+                        <svg class="verified-icon" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#248bf2"/></svg>
+                    </div>
+                    <div class="app-meta">Android • APK • <span id="app-size">15 MB</span></div>
+                </div>
+            </div>
+
+            <div class="app-actions">
+                <button id="install-btn" class="install-btn">Установить</button>
+                <div class="update-toggle">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notify-updates-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span>Уведомлять об обновлениях</span>
+                </div>
+            </div>
+
+            <div class="app-screenshots">
+                <div class="screenshot" style="background: linear-gradient(135deg, #ffd66b, #ffb03a);">☀️ Чат</div>
+                <div class="screenshot" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);">🛡️ 2FA</div>
+                <div class="screenshot" style="background: linear-gradient(135deg, #d4fc79, #96e6a1);">🔊 Голос</div>
+            </div>
+
+            <div class="app-description">
+                <h3>Описание</h3>
+                <p id="app-desc">Приватный и безопасный мессенджер с поддержкой 2FA, каналов, групп и голосовых сообщений. Встречай лето каждый день! ☀️</p>
+                <p class="hint">Текущая версия: <strong id="current-version">1.0.0</strong></p>
+            </div>
+        </div>
+
+        <div class="instruction-card">
+            <h3>📥 Как установить APK</h3>
+            <ol class="instruction-list">
+                <li>Нажмите кнопку «Установить» выше, чтобы скачать файл.</li>
+                <li>Откройте скачанный файл <code>leto_v1.0.0.apk</code>.</li>
+                <li>Если появится предупреждение безопасности, разрешите установку из этого источника (Настройки → Безопасность → Неизвестные источники).</li>
+                <li>Нажмите «Установить» и дождитесь завершения.</li>
+                <li>Откройте приложение «Лето» на рабочем столе!</li>
+            </ol>
+        </div>
+    </main>
+</div>
+
+<div id="leto-toast-container" class="leto-toast-container"></div>
+
+<script src="settings-config.js"></script>
+<script src="store.js"></script>
+</body>
+</html>

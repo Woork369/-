@@ -25,7 +25,6 @@
 
     <main class="settings-content">
 
-        <!-- ПРОФИЛЬ -->
         <section class="settings-section" data-section="profile">
             <button class="section-header" type="button">
                 <span class="section-icon">👤</span>
@@ -81,7 +80,6 @@
             </div>
         </section>
 
-        <!-- МОИ КОНТАКТЫ (АЛИАСЫ) -->
         <section class="settings-section" data-section="contacts">
             <button class="section-header" type="button">
                 <span class="section-icon">👥</span>
@@ -98,7 +96,6 @@
             </div>
         </section>
 
-        <!-- БЕЗОПАСНОСТЬ -->
         <section class="settings-section" data-section="security">
             <button class="section-header" type="button">
                 <span class="section-icon">🔒</span>
@@ -156,7 +153,6 @@
             </div>
         </section>
 
-        <!-- ВНЕШНИЙ ВИД -->
         <section class="settings-section" data-section="appearance">
             <button class="section-header" type="button">
                 <span class="section-icon">🎨</span>
@@ -226,7 +222,6 @@
             </div>
         </section>
 
-        <!-- АНИМАЦИИ -->
         <section class="settings-section" data-section="animations">
             <button class="section-header" type="button">
                 <span class="section-icon">✨</span>
@@ -256,9 +251,7 @@
                 <div class="field" style="margin-top: 24px;">
                     <label class="field-label">Тест анимаций</label>
                     <div class="preview-chat" style="height: 220px;">
-                        <div class="preview-chat-body" id="anim-preview-body" style="justify-content: flex-end;">
-                            <!-- Сюда будут добавляться тестовые сообщения -->
-                        </div>
+                        <div class="preview-chat-body" id="anim-preview-body" style="justify-content: flex-end;"></div>
                         <div class="preview-chat-input">
                             <input type="text" placeholder="Нажмите на кнопку для теста..." id="anim-preview-input" readonly>
                             <button id="anim-preview-send-btn" type="button">
@@ -273,7 +266,6 @@
             </div>
         </section>
 
-        <!-- УВЕДОМЛЕНИЯ -->
         <section class="settings-section" data-section="notifications">
             <button class="section-header" type="button">
                 <span class="section-icon">🔔</span>
@@ -372,7 +364,6 @@
             </div>
         </section>
 
-        <!-- ЗВУКИ -->
         <section class="settings-section" data-section="sounds">
             <button class="section-header" type="button">
                 <span class="section-icon">🔊</span>
@@ -405,7 +396,6 @@
             </div>
         </section>
 
-        <!-- ДАННЫЕ -->
         <section class="settings-section" data-section="data">
             <button class="section-header" type="button">
                 <span class="section-icon">💾</span>
@@ -444,7 +434,6 @@
             </div>
         </section>
 
-        <!-- ПРИЛОЖЕНИЕ -->
         <section class="settings-section" data-section="app">
             <button class="section-header" type="button">
                 <span class="section-icon">📱</span>
@@ -463,7 +452,6 @@
             </div>
         </section>
 
-        <!-- О СИСТЕМЕ -->
         <section class="settings-section" data-section="about">
             <button class="section-header" type="button">
                 <span class="section-icon">ℹ️</span>
@@ -489,7 +477,6 @@
     </main>
 </div>
 
-<!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ -->
 <div id="confirm-modal" class="modal-overlay">
     <div class="modal-card">
         <h3 id="confirm-modal-title" class="modal-title">Подтверждение</h3>
@@ -501,7 +488,6 @@
     </div>
 </div>
 
-<!-- МОДАЛКА КОДА -->
 <div id="code-modal" class="modal-overlay">
     <div class="modal-card">
         <h3 class="modal-title">Введите код из письма</h3>
@@ -521,7 +507,6 @@
     </div>
 </div>
 
-<!-- МОДАЛКА ПОДТВЕРЖДЕНИЯ ПАРОЛЯ ДЛЯ СМЕНЫ EMAIL -->
 <div id="password-confirm-modal" class="modal-overlay">
     <div class="modal-card">
         <h3 class="modal-title">Подтверждение пароля</h3>
@@ -535,17 +520,13 @@
     </div>
 </div>
 
-<!-- МОДАЛКА СМЕНЫ НИКА -->
 <div id="username-change-modal" class="modal-overlay">
     <div class="modal-card">
         <h3 class="modal-title">Смена никнейма</h3>
         <p class="modal-text">Введите пароль для подтверждения и новый никнейм</p>
-        
         <input type="password" id="username-change-password" class="field-input" placeholder="Пароль" autocomplete="current-password">
         <input type="text" id="username-change-new" class="field-input" placeholder="Новый никнейм (латиницей)" autocomplete="off">
-        
         <div id="username-change-status" class="modal-status"></div>
-        
         <div class="modal-actions">
             <button id="username-change-cancel" class="btn btn-secondary" type="button">Отмена</button>
             <button id="username-change-ok" class="btn btn-primary" type="button">Изменить</button>

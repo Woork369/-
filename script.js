@@ -401,7 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (code === stored.code) {
             localStorage.removeItem('leto_pending_code_2fa');
-            // После email-входа НЕ спрашиваем 2FA повторно
             localStorage.setItem('leto_active_user', stored.username);
             sessionStorage.setItem('leto_2fa_passed', 'true');
             setEmailCodeStatus('Успех! Переход...', 'success');
@@ -458,16 +457,14 @@ document.addEventListener('DOMContentLoaded', () => {
             deviceStep2.style.display = 'block';
             setDeviceCodeStatus('Ожидание подтверждения...', '');
 
-            await DeviceApproval.sendApprovalRequest(u, code);
-
-            const result = await DeviceApproval.waitForResponse(u);
+            const reqInfo = await DeviceApproval.sendApprovalRequest(u, code);
+            const result = await DeviceApproval.waitForResponse(u, reqInfo.requestId, reqInfo.sentAt);
 
             if (result.timeout) {
                 setDeviceCodeStatus('Время ожидания истекло. Попробуйте снова.', 'error');
                 return;
             }
             if (result.approved) {
-                // Проверяем 2FA перед входом
                 const twoFAEnabled = await is2FAEnabled(u);
                 if (twoFAEnabled) {
                     const profRes = await fetch(`${PROFILES_URL}?username=eq.${u}`, { method: "GET", headers: HEADERS_GET });
@@ -476,7 +473,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const verified = prof[0]?.email_verified;
 
                     if (!email || verified !== true) {
-                        // Защита от блокировки: если почта сломана, 2FA отключается
                         await fetch(`${PROFILES_URL}?username=eq.${u}`, {
                             method: "PATCH", headers: HEADERS_POST,
                             body: JSON.stringify({ two_factor_enabled: false })
@@ -576,7 +572,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: "DELETE", headers: HEADERS_GET
             });
 
-            // Проверяем 2FA перед входом
             const twoFAEnabled = await is2FAEnabled(u);
             if (twoFAEnabled) {
                 const profRes = await fetch(`${PROFILES_URL}?username=eq.${u}`, { method: "GET", headers: HEADERS_GET });
@@ -585,7 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const verified = prof[0]?.email_verified;
 
                 if (!email || verified !== true) {
-                    // Защита от блокировки
                     await fetch(`${PROFILES_URL}?username=eq.${u}`, {
                         method: "PATCH", headers: HEADERS_POST,
                         body: JSON.stringify({ two_factor_enabled: false })

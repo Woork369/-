@@ -1,12 +1,5 @@
-// =======================================================
-// ☀️ НАСТРОЙКИ МЕССЕНДЖЕРА «ЛЕТО» — Конфигурация
-// =======================================================
-
 const SUPABASE_CONFIG = {
     url: "https://rvmtghettsndnnhdeasx.supabase.co",
-    // ВНИМАНИЕ: publishable/anon ключ публичен по дизайну Supabase.
-    // Без включённого RLS и Supabase Auth он даёт полный доступ к данным.
-    // Не используйте service_role ключ на клиенте никогда.
     key: "sb_publishable_GQxHLUlRpEVdmFeq_UKcqA_PPdYfm_Q",
     tables: {
         user: "user",

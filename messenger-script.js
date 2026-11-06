@@ -1,8 +1,3 @@
-// =======================================================
-// ☀️ МЕССЕНДЖЕР «ЛЕТО» — с кэшем, push, галочками
-// 2FA проверяется только при входе (в script.js), не здесь
-// =======================================================
-
 document.addEventListener('DOMContentLoaded', function() {
 
     const MY_SUPABASE_URL = "https://rvmtghettsndnnhdeasx.supabase.co";
@@ -51,9 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentActiveUser = localStorage.getItem('leto_active_user');
     if (!currentActiveUser) { window.location.replace("index.html"); return; }
 
-    // =======================================================
-    // === ПРОВЕРКА ОБНОВЛЕНИЙ ПРИ ВХОДЕ ===
-    // =======================================================
     async function checkAppUpdate() {
         if (!currentActiveUser) return;
         try {
@@ -83,9 +75,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     checkAppUpdate();
 
-    // =======================================================
-    // === ИКОНКА ПРИЛОЖЕНИЯ ===
-    // =======================================================
     function applyAppIcon(iconPath) {
         let linkIcon = document.getElementById('app-favicon');
         if (!linkIcon) {
@@ -124,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedIcon = LocalStore.get('app_icon', 'logo.png');
     applyAppIcon(savedIcon);
 
-    // Получение кастомного имени (алиаса)
     function getContactAlias(username) {
         try {
             const aliases = JSON.parse(localStorage.getItem('leto_contact_aliases') || '{}');
@@ -141,6 +129,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function showDeviceApprovalScreen(payload) {
         if (document.getElementById('device-approval-overlay')) return;
         if (!payload || !payload.code) return;
+
+        const requestId = payload.request_id || null;
 
         const overlay = document.createElement('div');
         overlay.id = 'device-approval-overlay';
@@ -184,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (ok) {
                         document.getElementById('approval-status').textContent = '✅ Подтверждено!';
                         document.getElementById('approval-status').className = 'device-approval-status success';
-                        DeviceApproval.sendApprovalResponse(currentActiveUser, true);
+                        DeviceApproval.sendApprovalResponse(currentActiveUser, true, requestId);
                         setTimeout(() => overlay.remove(), 1500);
                     } else {
                         document.getElementById('approval-status').textContent = '❌ Неверный порядок';
@@ -197,14 +187,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.getElementById('approval-deny-btn').addEventListener('click', () => {
-            DeviceApproval.sendApprovalResponse(currentActiveUser, false);
+            DeviceApproval.sendApprovalResponse(currentActiveUser, false, requestId);
             overlay.remove();
         });
     }
 
-    // =======================================================
-    // === АВАТАРКИ ===
-    // =======================================================
     const avatarCache = {};
     try {
         const saved = JSON.parse(localStorage.getItem(AVATAR_CACHE_KEY) || '{}');
@@ -299,9 +286,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {}
     })();
 
-    // =======================================================
-    // === ВНЕШНИЙ ВИД ===
-    // =======================================================
     function applyUserAppearance() {
         const theme = LocalStore.get('theme', 'light');
         let actual = theme;
@@ -328,9 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (LocalStore.get('theme', 'light') === 'system') applyUserAppearance();
     });
 
-    // =======================================================
-    // === PUSH / MEDIAN ===
-    // =======================================================
     const MedianBridge = {
         push(title, body, tag) {
             if (window.median && typeof window.median.push === 'function') {
@@ -368,9 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
         MedianBridge.subscribeToTopic('user_' + currentActiveUser);
     }, 2000);
 
-    // =======================================================
-    // === ЗВУКИ ===
-    // =======================================================
     function playSound(type) {
         if (isQuietHours()) return;
         if (LocalStore.get('notifications_sound', true) === false) return;
@@ -395,9 +373,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return h * 60 + m;
     }
 
-    // =======================================================
-    // === EMAIL-УВЕДОМЛЕНИЯ ===
-    // =======================================================
     async function sendEmailNotification(msg) {
         const recipient = msg.receiver;
         if (!recipient) return false;
@@ -417,12 +392,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (profile.email_verified !== true) return false;
         if (!profile.notify_email) return false;
 
-        // Проверка на онлайн (если был активен менее 40 секунд назад - не шлем)
         if (profile.last_active) {
             const lastActiveMs = new Date(profile.last_active).getTime();
             const diffSec = (Date.now() - lastActiveMs) / 1000;
             if (diffSec < 40) {
-                return false; // Пользователь в сети
+                return false;
             }
         }
 
@@ -450,9 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // === SVG ===
-    // =======================================================
     const VERIFIED_USERS = ['алексей', 'тестовый', 'поддержка'];
     function isVerifiedUser(name) {
         return !!name && VERIFIED_USERS.includes(name.toLowerCase());
@@ -465,9 +436,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const svgSettings = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;color:var(--text-muted);"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
-    // =======================================================
-    // === ЭЛЕМЕНТЫ ===
-    // =======================================================
     const activeUsernameEl     = document.getElementById('active-username');
     const chatsListTarget      = document.getElementById('chats-list-target');
     const filterButtons        = document.querySelectorAll('.tab-btn');
@@ -531,9 +499,6 @@ document.addEventListener('DOMContentLoaded', function() {
         activeUsernameEl.innerHTML = currentActiveUser + (isVerifiedUser(currentActiveUser) ? svgVerified : '');
     }
 
-    // =======================================================
-    // === КЭШ ===
-    // =======================================================
     function readCacheMessages() {
         try { return JSON.parse(localStorage.getItem(CACHE_MESSAGES_KEY) || '[]'); }
         catch (e) { return []; }
@@ -582,9 +547,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return cache[chatType] || [];
     }
 
-    // =======================================================
-    // === ФОРМАТ ДАТЫ ===
-    // =======================================================
     function formatStickyDate(dateStr) {
         if (!dateStr) return "";
         const d = new Date(dateStr);
@@ -606,9 +568,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
-    // =======================================================
-    // === TOAST ===
-    // =======================================================
     function showToast(text, chatName) {
         const container = document.getElementById('leto-toast-container');
         if (!container) return;
@@ -635,9 +594,6 @@ document.addEventListener('DOMContentLoaded', function() {
         while (container.children.length > 3) container.firstChild.remove();
     }
 
-    // =======================================================
-    // === PRESENCE ===
-    // =======================================================
     function startPresenceLoop() {
         updateMyPresence();
         if (presenceInterval) clearInterval(presenceInterval);
@@ -673,9 +629,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }).catch(() => {});
     }
 
-    // =======================================================
-    // === СПИСОК ЧАТОВ ===
-    // =======================================================
     function loadChats() {
         if (!chatsListTarget) return;
 
@@ -785,9 +738,6 @@ document.addEventListener('DOMContentLoaded', function() {
         chatsListTarget.appendChild(card);
     }
 
-    // =======================================================
-    // === ОТКРЫТИЕ ЧАТА ===
-    // =======================================================
     function openChatWorkspace(chatName) {
         activeChatTarget = chatName;
         lastMessagesCount = -1;
@@ -1026,9 +976,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // === ЗАГРУЗКА СООБЩЕНИЙ ===
-    // =======================================================
     function loadMessages() {
         if (!activeChatTarget || !messagesScreen) return;
         if (settingsPanel && settingsPanel.style.display === 'flex') return;
@@ -1084,8 +1031,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             if (messages.length === lastMessagesCount) return;
+            
+            const shouldAnimate = lastMessagesCount >= 0 && messages.length !== lastMessagesCount;
             lastMessagesCount = messages.length;
-            renderMessages(messages);
+            renderMessages(messages, false, shouldAnimate);
         })
         .catch(() => {
             const cached = getMessagesFromCache(currentChatType, activeChatTarget);
@@ -1098,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function renderMessages(messages, isCache) {
+    function renderMessages(messages, isCache, animateLast) {
         const isUserAtBottom = (messagesScreen.scrollHeight - messagesScreen.scrollTop - messagesScreen.clientHeight) < 90;
         messagesScreen.innerHTML = "";
         let lastRenderedDateStr = "";
@@ -1107,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', function() {
         messages.forEach(msg => uniqueSenders.add(msg.sender));
         uniqueSenders.forEach(s => fetchAvatarUrl(s));
 
-        messages.forEach(msg => {
+        messages.forEach(function(msg, idx) {
             if (msg.text && msg.text.startsWith('/add_member:')) return;
 
             if (msg.created_at) {
@@ -1124,6 +1073,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const msgRow = document.createElement('div');
             const isMy = msg.sender === currentActiveUser;
             msgRow.className = 'msg-row ' + (isMy ? 'my-msg' : 'other-msg');
+
+            const msgAnim = LocalStore.get('msg_anim', 'default');
+            if (animateLast && idx === messages.length - 1 && msgAnim !== 'default') {
+                msgRow.classList.add('anim-msg-' + msgAnim);
+            }
 
             const av = document.createElement('div');
             av.className = 'msg-user-avatar';
@@ -1210,9 +1164,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // === ФАЙЛЫ / ГОЛОС ===
-    // =======================================================
     if (clipBtn) {
         clipBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -1241,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const currentMsgs = getMessagesFromCache(currentChatType, activeChatTarget);
         currentMsgs.push(tempMsg);
-        renderMessages(currentMsgs);
+        renderMessages(currentMsgs, false, true);
         messagesScreen.scrollTop = messagesScreen.scrollHeight;
 
         const fileName = "chat_" + Date.now() + "." + file.name.split('.').pop();
@@ -1313,7 +1264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         const currentMsgs = getMessagesFromCache(currentChatType, activeChatTarget);
                         currentMsgs.push(tempMsg);
-                        renderMessages(currentMsgs);
+                        renderMessages(currentMsgs, false, true);
                         messagesScreen.scrollTop = messagesScreen.scrollHeight;
 
                         const audioName = "voice_" + Date.now() + ".webm";
@@ -1371,9 +1322,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // === КОНТЕКСТНОЕ МЕНЮ ===
-    // =======================================================
     function setupContextEvents(element, msg, isMy) {
         const iAmCreator = (currentChatType !== 'contact' && activeChatCreator === currentActiveUser);
         if (!isMy && !iAmCreator) return;
@@ -1420,9 +1368,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // === СОЗДАНИЕ КОМНАТ ===
-    // =======================================================
     const createRoomModal    = document.getElementById('create-room-modal');
     const modalAvatarPreview = document.getElementById('modal-room-avatar-preview');
     const modalAvatarInput   = document.getElementById('modal-room-avatar-input');
@@ -1551,9 +1496,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // === НАСТРОЙКИ КОМНАТЫ (аватар) ===
-    // =======================================================
     const settingsAvatarPreview = document.getElementById('settings-room-avatar-preview');
     const settingsAvatarInput   = document.getElementById('settings-room-avatar-input');
     const settingsAvatarBtn     = document.getElementById('settings-room-avatar-btn');
@@ -1716,9 +1658,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // === ОТПРАВКА ТЕКСТА ===
-    // =======================================================
+    function triggerSendAnimation() {
+        if (!sendBtn) return;
+        const anim = LocalStore.get('send_anim', 'default');
+        if (anim === 'default') return;
+        sendBtn.classList.remove('anim-btn-spin', 'anim-btn-fly');
+        void sendBtn.offsetWidth;
+        sendBtn.classList.add('anim-btn-' + anim);
+        setTimeout(function() {
+            sendBtn.classList.remove('anim-btn-' + anim);
+        }, 800);
+    }
+
     async function handleSendMessage() {
         if (!mainMessageField) return;
         const text = mainMessageField.value.trim();
@@ -1739,13 +1690,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const currentMsgs = getMessagesFromCache(currentChatType, activeChatTarget);
         currentMsgs.push(tempMsg);
-        renderMessages(currentMsgs);
+        renderMessages(currentMsgs, false, true);
         messagesScreen.scrollTop = messagesScreen.scrollHeight;
 
         mainMessageField.value = "";
         clearTimeout(typingTimeout);
         isTypingAnnounced = false;
         setMyStatus(null);
+
+        triggerSendAnimation();
 
         try {
             await fetch(SUPABASE_MSG_URL, {
@@ -1793,9 +1746,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // === ТАБЫ ===
-    // =======================================================
     filterButtons.forEach(btn => {
         btn.addEventListener('click', e => {
             filterButtons.forEach(b => b.classList.remove('active'));
@@ -1805,7 +1755,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 🔥 ВЫХОД ИЗ ЧАТА ПО СТРЕЛОЧКЕ (ТОЧНО КАК В СТАРОЙ ВЕРСИИ)
     if (mobileBackBtn) {
         mobileBackBtn.addEventListener('click', () => {
             if (appContainer) appContainer.classList.remove('show-chat');
@@ -1815,9 +1764,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =======================================================
-    // === ГЛОБАЛЬНЫЙ ОПРОС ===
-    // =======================================================
     function pollGlobalUnread() {
         if (currentChatType !== 'contact') return;
         fetch(SUPABASE_MSG_URL + "?chat_type=eq.contact&receiver=eq." + encodeURIComponent(currentActiveUser) + "&is_read=eq.false", { method: "GET", headers: HEADERS_GET })
@@ -1854,9 +1800,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     globalUnreadInterval = setInterval(pollGlobalUnread, 15000);
 
-    // =======================================================
-    // === ЗАПУСК ===
-    // =======================================================
     startPresenceLoop();
     loadChats();
 });

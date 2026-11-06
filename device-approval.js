@@ -30,17 +30,21 @@ const DeviceApproval = {
     },
 
     async sendApprovalRequest(username, code) {
+        const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
         const payload = {
+            request_id: requestId,
             code: String(code),
             from: "new_device",
             timestamp: Date.now(),
             pending: true
         };
         await this._patchRow(username, { device_request: payload });
+        return { requestId: requestId, sentAt: payload.timestamp };
     },
 
-    async sendApprovalResponse(username, approved) {
+    async sendApprovalResponse(username, approved, requestId) {
         const payload = {
+            request_id: requestId || null,
             pending: false,
             approved: approved === true,
             timestamp: Date.now()
@@ -80,7 +84,7 @@ const DeviceApproval = {
         this._pollInterval = null;
     },
 
-    waitForResponse(username, timeoutMs = 120000) {
+    waitForResponse(username, requestId, sentAt, timeoutMs = 120000) {
         return new Promise((resolve) => {
             const started = Date.now();
             const interval = setInterval(async () => {
@@ -100,6 +104,8 @@ const DeviceApproval = {
                     const req = rows[0].device_request;
                     if (!req) return;
                     if (req.pending) return;
+                    if (req.request_id !== requestId) return;
+                    if ((req.timestamp || 0) < sentAt) return;
 
                     clearInterval(interval);
                     resolve({ approved: req.approved === true, timeout: false });

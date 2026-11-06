@@ -1161,20 +1161,22 @@ html, body {
 }
 
 /* АНИМАЦИИ КНОПОК И СООБЩЕНИЙ */
-.anim-btn-spin {
-    animation: btnSpin 0.5s ease;
+.anim-btn-spin svg {
+    animation: btnSpin 0.55s ease;
 }
 @keyframes btnSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
 }
 
-.anim-btn-fly {
-    animation: btnFly 0.5s cubic-bezier(0.4, 0, 1, 1) forwards;
+.anim-btn-fly svg {
+    animation: btnFly 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 @keyframes btnFly {
-    0% { transform: scale(1) translate(0, 0); opacity: 1; }
-    100% { transform: scale(0.5) translate(40px, -40px); opacity: 0; }
+    0%   { transform: scale(1) translate(0, 0); opacity: 1; }
+    45%  { transform: scale(0.5) translate(36px, -36px); opacity: 0; }
+    46%  { transform: scale(0.5) translate(-36px, 36px); opacity: 0; }
+    100% { transform: scale(1) translate(0, 0); opacity: 1; }
 }
 
 .anim-msg-fade {

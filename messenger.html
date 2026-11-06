@@ -10,7 +10,6 @@
 </head>
 <body>
 
-    <!-- Плашка обновления -->
     <div id="update-banner" class="update-banner" style="display: none;">
         <span>🚀 Доступна новая версия Лето! Нажмите, чтобы скачать.</span>
     </div>
@@ -93,26 +92,21 @@
             <div class="leto-room-settings-panel" id="leto-room-settings-panel">
                 <div class="settings-panel-inner">
                     <h3 class="settings-panel-title">Настройки комнаты</h3>
-
                     <div class="settings-avatar-block">
                         <div id="settings-room-avatar-preview" class="settings-avatar-preview">📷</div>
                         <input type="file" id="settings-room-avatar-input" accept="image/*" style="display: none;">
                         <button type="button" id="settings-room-avatar-btn" class="settings-avatar-btn">Сменить аватар</button>
                     </div>
-
                     <div class="settings-field">
                         <label>Название комнаты</label>
                         <input type="text" id="set-room-name" disabled>
                     </div>
-
                     <div id="group-add-users-section" class="settings-field">
                         <label>Добавить участников</label>
                         <input type="text" id="add-member-username" placeholder="Юзернейм">
                         <button id="submit-add-member-btn" class="settings-primary-btn">Добавить</button>
                     </div>
-
                     <div id="members-info" class="settings-members-info"></div>
-
                     <button id="delete-room-completely-btn" class="settings-danger-btn">Полностью удалить комнату</button>
                     <button id="close-room-settings-btn" class="settings-secondary-btn">Назад в чат</button>
                 </div>
@@ -123,16 +117,13 @@
     <div id="create-room-modal" class="modal-overlay">
         <div class="modal-card">
             <h3 id="create-room-modal-title" class="modal-title">Создание комнаты</h3>
-
             <div class="modal-avatar-block">
                 <div id="modal-room-avatar-preview" class="settings-avatar-preview">📷</div>
                 <input type="file" id="modal-room-avatar-input" accept="image/*" style="display: none;">
                 <button type="button" id="modal-room-avatar-btn" class="settings-avatar-btn">Выбрать аватар</button>
             </div>
-
             <input type="text" id="modal-room-name" class="modal-input" placeholder="Название комнаты">
             <textarea id="modal-room-desc" class="modal-textarea" placeholder="Описание (необязательно)"></textarea>
-
             <div class="modal-actions">
                 <button id="modal-cancel-btn" class="modal-btn modal-btn-cancel">Отмена</button>
                 <button id="modal-submit-btn" class="modal-btn modal-btn-primary">Создать</button>
