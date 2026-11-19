@@ -1,18 +1,20 @@
 // =======================================================
 // ☀️ 2FA — Подтверждение по email
 // Срабатывает ТОЛЬКО при входе (пароль / устройство / бэкап)
+// До подтверждения пользователь хранится в leto_pending_user.
+// В leto_active_user он попадает только после верного кода.
 // =======================================================
 
 document.addEventListener('DOMContentLoaded', async function() {
 
-    const activeUser = getActiveUser();
-    if (!activeUser) { window.location.href = "index.html"; return; }
+    const activeUser  = localStorage.getItem('leto_active_user');
+    const pendingUser = localStorage.getItem('leto_pending_user');
 
-    // Если 2FA уже пройдена в этой сессии — сразу в мессенджер
-    if (sessionStorage.getItem('leto_2fa_passed') === 'true') {
-        window.location.href = "messenger.html";
-        return;
-    }
+    // Если 2FA уже пройдена (есть активный юзер) — сразу в мессенджер
+    if (activeUser) { window.location.href = "messenger.html"; return; }
+
+    // Не пришли ни по 2FA, ни с логина — на страницу входа
+    if (!pendingUser) { window.location.href = "index.html"; return; }
 
     const PROFILES_URL = SUPABASE_CONFIG.url + "/rest/v1/" + SUPABASE_CONFIG.tables.profiles;
 
@@ -22,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Загружаем email с сервера
     let email = '';
     try {
-        const res = await fetch(PROFILES_URL + "?username=eq." + encodeURIComponent(activeUser) + "&select=notify_email", {
+        const res = await fetch(PROFILES_URL + "?username=eq." + encodeURIComponent(pendingUser) + "&select=notify_email", {
             method: "GET", headers: HEADERS_GET
         });
         const rows = await res.json();
@@ -106,7 +108,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         if (userCode === stored.code) {
             localStorage.removeItem('leto_pending_code_2fa');
+
+            // 🔑 Единственное место, где выставляется активный пользователь
+            localStorage.setItem('leto_active_user', pendingUser);
+            localStorage.removeItem('leto_pending_user');
             sessionStorage.setItem('leto_2fa_passed', 'true');
+
             setStatus('Код подтверждён! Переход...', 'success');
             setTimeout(function() { window.location.href = "messenger.html"; }, 900);
         } else {

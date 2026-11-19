@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             localStorage.setItem('leto_active_user', username);
+            localStorage.removeItem('leto_pending_user');
             sessionStorage.setItem('leto_2fa_passed', 'true');
             authMessage.className = "message-box success";
             authMessage.textContent = "Регистрация успешна! Переход...";
@@ -193,9 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            localStorage.setItem('leto_active_user', username);
-            sessionStorage.removeItem('leto_2fa_passed');
-
             const twoFAEnabled = await is2FAEnabled(username);
             if (twoFAEnabled) {
                 const profRes = await fetch(`${PROFILES_URL}?username=eq.${username}`, { method: "GET", headers: HEADERS_GET });
@@ -208,10 +206,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     authMessage.textContent = "2FA включена, но почта не подтверждена. Войдите другим способом или отключите 2FA.";
                     return;
                 }
+
+                // 🔒 2FA включена — НЕ пишем активного пользователя.
+                //    Аккаунт фиксируется только в 2fa.js после верного кода.
+                localStorage.removeItem('leto_active_user');
+                localStorage.setItem('leto_pending_user', username);
+                sessionStorage.removeItem('leto_2fa_passed');
+
                 authMessage.className = "message-box success";
                 authMessage.textContent = "Введите код из письма...";
                 setTimeout(() => { window.location.href = "2fa.html"; }, 900);
             } else {
+                localStorage.setItem('leto_active_user', username);
+                localStorage.removeItem('leto_pending_user');
                 sessionStorage.setItem('leto_2fa_passed', 'true');
                 authMessage.className = "message-box success";
                 authMessage.textContent = "Вход выполнен! Переход...";
@@ -402,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (code === stored.code) {
             localStorage.removeItem('leto_pending_code_2fa');
             localStorage.setItem('leto_active_user', stored.username);
+            localStorage.removeItem('leto_pending_user');
             sessionStorage.setItem('leto_2fa_passed', 'true');
             setEmailCodeStatus('Успех! Переход...', 'success');
             setTimeout(() => { window.location.href = 'messenger.html'; }, 900);
@@ -478,18 +486,23 @@ document.addEventListener('DOMContentLoaded', () => {
                             body: JSON.stringify({ two_factor_enabled: false })
                         });
                         localStorage.setItem('leto_active_user', u);
+                        localStorage.removeItem('leto_pending_user');
                         sessionStorage.setItem('leto_2fa_passed', 'true');
                         setDeviceCodeStatus('Подтверждено! 2FA отключена из-за неподтвержденной почты.', 'success');
                         setTimeout(() => { window.location.href = 'messenger.html'; }, 1500);
                         return;
                     }
-                    localStorage.setItem('leto_active_user', u);
+
+                    // 🔒 2FA включена — НЕ пишем активного пользователя
+                    localStorage.removeItem('leto_active_user');
+                    localStorage.setItem('leto_pending_user', u);
                     sessionStorage.removeItem('leto_2fa_passed');
                     setDeviceCodeStatus('Подтверждено! Требуется 2FA...', 'success');
                     setTimeout(() => { window.location.href = '2fa.html'; }, 900);
                     return;
                 }
                 localStorage.setItem('leto_active_user', u);
+                localStorage.removeItem('leto_pending_user');
                 sessionStorage.setItem('leto_2fa_passed', 'true');
                 setDeviceCodeStatus('Подтверждено! Переход...', 'success');
                 setTimeout(() => { window.location.href = 'messenger.html'; }, 900);
@@ -585,18 +598,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: JSON.stringify({ two_factor_enabled: false })
                     });
                     localStorage.setItem('leto_active_user', u);
+                    localStorage.removeItem('leto_pending_user');
                     sessionStorage.setItem('leto_2fa_passed', 'true');
                     setBackupStatus('Бэкап подтверждён! 2FA отключена из-за неподтвержденной почты.', 'success');
                     setTimeout(() => { window.location.href = 'messenger.html'; }, 1500);
                     return;
                 }
-                localStorage.setItem('leto_active_user', u);
+
+                // 🔒 2FA включена — НЕ пишем активного пользователя
+                localStorage.removeItem('leto_active_user');
+                localStorage.setItem('leto_pending_user', u);
                 sessionStorage.removeItem('leto_2fa_passed');
                 setBackupStatus('Бэкап подтверждён! Требуется 2FA...', 'success');
                 setTimeout(() => { window.location.href = '2fa.html'; }, 900);
                 return;
             }
             localStorage.setItem('leto_active_user', u);
+            localStorage.removeItem('leto_pending_user');
             sessionStorage.setItem('leto_2fa_passed', 'true');
             setBackupStatus('Бэкап подтверждён! Переход...', 'success');
             setTimeout(() => { window.location.href = 'messenger.html'; }, 900);
