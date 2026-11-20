@@ -22,9 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let emailVerified = false;
     let isEditingEmail = false;
 
-    const CACHE_MESSAGES_KEY = 'leto_cache_messages';
-    const CACHE_CHATS_KEY = 'leto_cache_chats';
-
     function updateAppIcon(iconPath) {
         let linkIcon = document.querySelector("link[rel~='icon']");
         if (!linkIcon) {
@@ -329,6 +326,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('toggle-sound-message').checked = LocalStore.get('sound_message', true);
         document.getElementById('toggle-sound-sent').checked = LocalStore.get('sound_sent', true);
 
+        // 🆕 Новый переключатель «Хранить сообщения и чаты навсегда»
+        document.getElementById('toggle-keep-cache-forever').checked = LocalStore.get('keep_cache_forever', true) !== false;
+
         const inApp = isMedianApp();
         document.getElementById('app-status-indicator').innerHTML = inApp
             ? '📱 Вы в приложении'
@@ -340,7 +340,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('about-developer').textContent = APP_CONFIG.developer;
 
         updatePreviewAvatar();
-        updateCacheStats();
 
         const sendAnim = LocalStore.get('send_anim', 'default');
         document.querySelectorAll('#send-anim-picker .theme-option').forEach(function(btn) {
@@ -351,18 +350,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#msg-anim-picker .theme-option').forEach(function(btn) {
             btn.classList.toggle('selected', btn.getAttribute('data-val') === msgAnim);
         });
-    }
-
-    function updateCacheStats() {
-        try {
-            const msgs = JSON.parse(localStorage.getItem(CACHE_MESSAGES_KEY) || '[]');
-            const chats = JSON.parse(localStorage.getItem(CACHE_CHATS_KEY) || '{}');
-            document.getElementById('cache-messages-count').textContent = msgs.length || 0;
-            document.getElementById('cache-chats-count').textContent = Object.keys(chats).length || 0;
-        } catch (e) {
-            document.getElementById('cache-messages-count').textContent = '0';
-            document.getElementById('cache-chats-count').textContent = '0';
-        }
     }
 
     async function renderAvatar() {
@@ -527,6 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ['toggle-2fa', 'two_factor_enabled'],
         ['toggle-incognito', 'incognito'],
         ['toggle-hide-last-seen', 'hide_last_seen'],
+        ['toggle-keep-cache-forever', 'keep_cache_forever'],
         ['toggle-notifications-enabled', 'notifications_enabled'],
         ['toggle-notifications-sound', 'notifications_sound'],
         ['toggle-notifications-vibrate', 'notifications_vibrate'],
@@ -560,6 +548,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     showToast('2FA выключена', 'success');
                 }
+                return;
+            }
+            if (id === 'toggle-keep-cache-forever') {
+                LocalStore.set(key, this.checked);
+                showToast(this.checked
+                    ? 'Хранение сообщений и чатов на устройстве включено'
+                    : 'Хранение сообщений и чатов на устройстве выключено',
+                    'success');
                 return;
             }
             LocalStore.set(key, this.checked);
@@ -994,15 +990,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    document.getElementById('clear-chat-cache-btn').addEventListener('click', function() {
-        confirmDialog('Очистить кэш чатов?', 'Все сохранённые сообщения и чаты будут удалены с устройства.', function() {
-            localStorage.removeItem(CACHE_MESSAGES_KEY);
-            localStorage.removeItem(CACHE_CHATS_KEY);
-            updateCacheStats();
-            showToast('Кэш чатов очищен', 'success');
-        });
-    });
-
     function generateBackupKey() {
         const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let key = '';
@@ -1180,8 +1167,19 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('back-btn').addEventListener('click', function() {
         window.location.replace('messenger.html');
     });
-    document.getElementById('back-to-messenger-btn').addEventListener('click', function() {
-        window.location.replace('messenger.html');
+
+    // 🆕 Кнопка «Выйти из аккаунта»
+    document.getElementById('logout-btn').addEventListener('click', function() {
+        confirmDialog(
+            'Выйти из аккаунта?',
+            'Вы уверены, что хотите выйти? Данные на устройстве сохранятся — для входа потребуется ввести пароль заново.',
+            function() {
+                localStorage.removeItem('leto_active_user');
+                localStorage.removeItem('leto_pending_user');
+                sessionStorage.removeItem('leto_2fa_passed');
+                window.location.replace('index.html');
+            }
+        );
     });
 
     document.querySelectorAll('#send-anim-picker .theme-option').forEach(function(btn) {

@@ -415,17 +415,16 @@
 
                 <hr class="divider">
 
-                <h3 class="subsection-title">Кэш чатов и сообщений</h3>
-                <p class="hint">Кэш хранит сообщения и чаты на устройстве.</p>
-                <div class="about-row">
-                    <span class="about-label">Сообщений</span>
-                    <span class="about-value" id="cache-messages-count">0</span>
+                <div class="toggle-row">
+                    <div class="toggle-info">
+                        <span class="toggle-label">Хранить сообщения и чаты навсегда</span>
+                        <span class="toggle-hint">Сообщения и чаты сохраняются на устройстве и не удаляются. Мессенджер открывает их из памяти мгновенно, а свежие данные подгружает с сервера в фоне.</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-keep-cache-forever" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
-                <div class="about-row">
-                    <span class="about-label">Чатов</span>
-                    <span class="about-value" id="cache-chats-count">0</span>
-                </div>
-                <button id="clear-chat-cache-btn" class="btn btn-danger" type="button">Очистить кэш чатов</button>
 
                 <hr class="divider">
 
@@ -472,7 +471,7 @@
             </div>
         </section>
 
-        <button id="back-to-messenger-btn" class="btn btn-primary btn-full" type="button">Назад в мессенджер</button>
+        <button id="logout-btn" class="btn btn-danger btn-full" type="button">Выйти из аккаунта</button>
 
     </main>
 </div>
